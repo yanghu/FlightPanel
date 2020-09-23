@@ -8,17 +8,17 @@
 namespace flight_panel {
 
 struct SerialDevice {
-  std::wstring name;
-  std::wstring pnpID;
-  std::wstring comPort;
+  std::string name;
+  std::string pnpID;
+  std::string comPort;
 };
 
 class SerialSelect {
  public:
   SerialSelect() : pSvc_(nullptr), pLoc_(nullptr), pEnumerator_(nullptr), isClean_(true){};
   ~SerialSelect();
-  std::vector<SerialDevice> GetComPort(const std::wstring& vid,
-                                 const std::wstring& pid);
+  std::vector<SerialDevice> GetComPort(const std::string& vid,
+                                 const std::string& pid);
   std::vector<SerialDevice> GetComPort();
   int Connect();
   int Clean();

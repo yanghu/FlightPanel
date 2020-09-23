@@ -1,6 +1,7 @@
 #include "SerialSelect.h"
 #define _WIN32_DCOM
 #include <iostream>
+#include <codecvt>
 using namespace std;
 #include <Wbemidl.h>
 #include <comdef.h>
@@ -10,13 +11,13 @@ using namespace std;
 namespace flight_panel {
 SerialSelect::~SerialSelect() { Clean(); }
 
-  std::vector<SerialDevice> SerialSelect::GetComPort(const std::wstring& vid,
-                                             const std::wstring& pid) {
+  std::vector<SerialDevice> SerialSelect::GetComPort(const std::string& vid,
+                                             const std::string& pid) {
   std::vector<SerialDevice> devices;
-    std::wstring vidStr = L"VID_" + vid;
-  std::wstring pidStr = L"PID_" + pid;
+    std::string vidStr = "VID_" + vid;
+  std::string pidStr = "PID_" + pid;
   for (auto device : GetComPort()) {
-    const std::wstring& id = device.pnpID;
+    const std::string& id = device.pnpID;
     if (id.find(pidStr) != std::string::npos &&
         id.find(vidStr) != std::string::npos) {
       devices.push_back(device);
@@ -62,14 +63,20 @@ std::vector<SerialDevice> SerialSelect::GetComPort() {
     VARIANT vtProp;
 
     // Get the value of the Name property
+    using convert_type = std::codecvt_utf8<wchar_t>;
+    std::wstring_convert<convert_type, wchar_t> converter;
     hr = pclsObj->Get(L"Description", 0, &vtProp, 0, 0);
-    std::wstring name = vtProp.bstrVal;
+    std::wstring wName = vtProp.bstrVal;
+    std::string name = converter.to_bytes(wName);
+
     VariantClear(&vtProp);
     hr = pclsObj->Get(L"DeviceID", 0, &vtProp, 0, 0);
-    std::wstring comPort = vtProp.bstrVal;
+    std::wstring wComPort = vtProp.bstrVal;
+    std::string comPort = converter.to_bytes(wComPort);
     VariantClear(&vtProp);
     hr = pclsObj->Get(L"PNPDeviceID", 0, &vtProp, 0, 0);
-    std::wstring pnpDeviceID = vtProp.bstrVal;
+    std::wstring wPnpDeviceID = vtProp.bstrVal;
+    std::string pnpDeviceID = converter.to_bytes(wPnpDeviceID);
     VariantClear(&vtProp);
 
     result.push_back({name, pnpDeviceID, comPort});

@@ -167,11 +167,13 @@
     <ClCompile Include="DataLink.cpp" />
     <ClCompile Include="FlightPanel.cpp" />
     <ClCompile Include="SerialSelect.cpp" />
+    <ClCompile Include="Server.cpp" />
     <ClCompile Include="SimVars.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataLink.h" />
     <ClInclude Include="SerialSelect.h" />
+    <ClInclude Include="Server.h" />
     <ClInclude Include="SimVars.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -68,8 +68,8 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
                       << std::endl
                       << "FlapCnt: " << simVars.tfFlapsCount
                       << "|FlapIdx: " << simVars.tfFlapsIndex << std::endl;
-            printf("Trim deflection: %f deg, trim Indicator: %f, Transponder code: %X\n\n", simVars.asiAirspeed,
-                   simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator, (int)simVars.transponderCode);
+            printf("Trim deflection: %f deg, trim Indicator: %f, Transponder code: %X\n\n", 
+                   simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator, int(simVars.transponderCode));
             displayDelay = 250;
           }
 #endif  // DEBUG_VARS
@@ -208,7 +208,7 @@ int Run() {
   return 0;
 }
 
-const SimVars& Read() { return simVars; }
+const SimVars* const Read() { return &simVars; }
 
 }  // namespace datalink
 }  // namespace flight_panel

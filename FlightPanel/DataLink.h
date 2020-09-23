@@ -11,7 +11,7 @@
 namespace flight_panel {
 namespace datalink {
 int Run();
-const SimVars& Read();
+const SimVars* const Read();
 
 }  // namespace datalink
 }  // namespace flight_panel
