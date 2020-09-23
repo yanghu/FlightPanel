@@ -1,7 +1,8 @@
 #include "DataLink.h"
 
-#include "SimVars.h"
 #include "SimConnect.h"
+#include "SimVars.h"
+#include <iostream>
 
 namespace flight_panel {
 
@@ -9,7 +10,6 @@ extern const char* versionString;
 extern const char* SimVarDefs[][2];
 extern WriteEvent WriteEvents[];
 namespace datalink {
-
 
 enum DEFINITION_ID {
   // Definition that reads all variables defined in SimVar.h
@@ -25,6 +25,8 @@ HANDLE hSimConnect = NULL;
 bool quit = false;
 SimVars simVars;
 int varSize = 0;
+// The first position is "connected", which is not part of the data read from
+// MSFS. +1 to skip it.
 double* varStart = (double*)&simVars + 1;
 
 // DispathProcRD is the callback to consume SimConnect data.using This is the
@@ -61,7 +63,13 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
           else {
             printf("Aircraft: %s   Cruise Speed: %f\n", simVars.aircraft,
                    simVars.cruiseSpeed);
-            printf("Airspeed: %f, trim: %f\n", simVars.asiAirspeed, simVars.tfElevatorTrim);
+            std::cout << "Air speed: " << simVars.asiAirspeed
+                      << "\tVertical speed: " << simVars.vsiVerticalSpeed << "\tRPM: " << simVars.rpmEngine
+                      << std::endl
+                      << "FlapCnt: " << simVars.tfFlapsCount
+                      << "|FlapIdx: " << simVars.tfFlapsIndex << std::endl;
+            printf("Trim deflection: %f deg, trim Indicator: %f, Transponder code: %X\n\n", simVars.asiAirspeed,
+                   simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator, (int)simVars.transponderCode);
             displayDelay = 250;
           }
 #endif  // DEBUG_VARS
@@ -131,15 +139,14 @@ void MapEvents() {
 
 void SubscribeEvents() {
   // Request an event when the simulation starts
-  // if (SimConnect_SubscribeToSystemEvent(hSimConnect, SIM_START, "SimStart") <
-  // 0) {
-  //    printf("Subscribe event failed: SimStart\n");
-  //}
+  if (SimConnect_SubscribeToSystemEvent(hSimConnect, SIM_START, "SimStart") <
+      0) {
+    printf("Subscribe event failed: SimStart\n");
+  }
 
-  // if (SimConnect_SubscribeToSystemEvent(hSimConnect, SIM_STOP, "SimStop") <
-  // 0) {
-  //    printf("Subscribe event failed: SimStop\n");
-  //}
+  if (SimConnect_SubscribeToSystemEvent(hSimConnect, SIM_STOP, "SimStop") < 0) {
+    printf("Subscribe event failed: SimStop\n");
+  }
 }
 
 void CleanUp() {
@@ -192,7 +199,7 @@ int Run() {
       } else {
         retryDelay = 200;
       }
-    }
+    }  // if connected/elif retry>0/else(retry).
 
     Sleep(10);
   }

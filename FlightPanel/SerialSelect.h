@@ -1,3 +1,4 @@
+// Selects serial ports based on vid and pid. Returns the serial device.
 #pragma once
 #include <Wbemidl.h>
 
@@ -6,7 +7,7 @@
 
 namespace flight_panel {
 
-struct Device {
+struct SerialDevice {
   std::wstring name;
   std::wstring pnpID;
   std::wstring comPort;
@@ -16,9 +17,9 @@ class SerialSelect {
  public:
   SerialSelect() : pSvc_(nullptr), pLoc_(nullptr), pEnumerator_(nullptr), isClean_(true){};
   ~SerialSelect();
-  std::vector<Device> GetComPort(const std::wstring& vid,
+  std::vector<SerialDevice> GetComPort(const std::wstring& vid,
                                  const std::wstring& pid);
-  std::vector<Device> GetComPort();
+  std::vector<SerialDevice> GetComPort();
   int Connect();
   int Clean();
 

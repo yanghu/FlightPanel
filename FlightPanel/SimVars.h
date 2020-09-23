@@ -16,7 +16,11 @@ struct SimVars {
   double tcRate = 0;
   double tcBall = 0;
   double tfElevatorTrim = 0;
+  // value from -1.0(nose down) ~ 1.0 (nose up)
+  double tfElevatorTrimIndicator = 0;
+  // Max flap index value. 0-index.
   double tfFlapsCount = 1;
+  // Flap position index. 0-count.
   double tfFlapsIndex = 0;
   double dcUtcSeconds = 43200;
   double dcLocalSeconds = 46800;
@@ -48,6 +52,8 @@ struct SimVars {
   double nav2Standby = 113.90;
   double adfFreq = 394;
   double adfStandby = 368;
+  // BCO16 encoding. The double value is an integer. Lower 16 bits encodes the numbers.
+  // mask = 0xf; digit3 = int(val)>>12 & mask;
   double transponderCode = 4608;
   double autopilotAvailable = 1;
   double autopilotEngaged = 0;
@@ -63,6 +69,9 @@ struct SimVars {
   double autopilotMach = 0;
   double autopilotAirspeedHold = 0;
   double gearRetractable = 1;
+  // Landing gear position.
+  // Enum. 0: unknown. 1:up, 2:down.
+  double gearPosition = 0;
   double gearLeftPos = 100;
   double gearCentrePos = 100;
   double gearRightPos = 100;

@@ -10,9 +10,9 @@ using namespace std;
 namespace flight_panel {
 SerialSelect::~SerialSelect() { Clean(); }
 
-  std::vector<Device> SerialSelect::GetComPort(const std::wstring& vid,
+  std::vector<SerialDevice> SerialSelect::GetComPort(const std::wstring& vid,
                                              const std::wstring& pid) {
-  std::vector<Device> devices;
+  std::vector<SerialDevice> devices;
     std::wstring vidStr = L"VID_" + vid;
   std::wstring pidStr = L"PID_" + pid;
   for (auto device : GetComPort()) {
@@ -25,9 +25,9 @@ SerialSelect::~SerialSelect() { Clean(); }
   return devices;
   };
 
-std::vector<Device> SerialSelect::GetComPort() {
+std::vector<SerialDevice> SerialSelect::GetComPort() {
   Connect();
-  auto result = std::vector<Device>();
+  auto result = std::vector<SerialDevice>();
 
   HRESULT hres;
   // Step 6: --------------------------------------------------
@@ -156,7 +156,7 @@ int SerialSelect::Connect() {
     return 1;  // Program has failed.
   }
 
-  cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
+  // cout << "Connected to ROOT\\CIMV2 WMI namespace" << endl;
 
   // Step 5: --------------------------------------------------
   // Set security levels on the proxy -------------------------

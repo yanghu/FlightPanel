@@ -10,18 +10,38 @@
 #include "DataLink.h"
 #include "SerialPort.hpp"
 #include "SerialSelect.h"
+
+namespace flight_panel {
+constexpr int kBufSize = 100;
+
+void Log(const std::string& msg) { std::cout << msg; }
+
 void ComServer(const std::wstring& port) {
   std::wstring modifiedPort = L"\\\\.\\" + port;
   char* comPort = (char*)malloc(50);
-  wcstombs_s(comPort, 6, port.c_str(), 50);
+  size_t converted;
+  wcstombs_s(&converted, comPort, 50, modifiedPort.c_str(), 10);
 
   printf("%s", comPort);
   SerialPort arduino = SerialPort(comPort);
-  char* buffer = (char*)malloc(10);
+  char buffer[10];
+  char readBuf[kBufSize];
+  readBuf[0] = 'a';
   buffer[0] = 't';
-  arduino.writeSerialPort(buffer, 1);
+  const SimVars& simvars = datalink::Read();
+  buffer[0] = char(simvars.rpmEngine/100);
+  while (true) {
+    buffer[0] = char(simvars.rpmEngine/100);
+    if (!arduino.writeSerialPort(buffer, 1))
+      Log("Failed to write to serial port!");
+    Sleep(1000);
+    arduino.readSerialPort(readBuf, kBufSize);
+    printf("Read: %d", readBuf[0]);
+  }
   return;
 };
+}  // namespace flight_panel
+
 int main() {
   using namespace flight_panel;
   SerialSelect selector{};
