@@ -15,7 +15,7 @@ const char* SimVarDefs[][2] = {
     {"Vertical Speed", "feet per second"},
     {"Turn Indicator Rate", "radians per second"},
     {"Turn Coordinator Ball", "position"},
-    {"Elevator Trim Position", "degrees"},
+    {"Elevator Trim Position", "radian"},
     {"ELEVATOR TRIM INDICATOR", "position"},
     {"Flaps Num Handle Positions", "number"},
     {"Flaps Handle Index", "number"},
@@ -117,5 +117,8 @@ WriteEvent WriteEvents[] = {
     {KEY_AP_ALT_HOLD_ON, "AP_ALT_HOLD_ON"},
     {KEY_AP_ALT_HOLD_OFF, "AP_ALT_HOLD_OFF"},
     {KEY_AP_PANEL_ALTITUDE_ON, "AP_PANEL_ALTITUDE_ON"},
+    {KEY_AXIS_ELEV_TRIM_SET, "AXIS_ELEV_TRIM_SET"},
+    {KEY_ELEV_TRIM_BIG_UP, "huyang.ELEV_TRIM_UP"},
+    {KEY_ELEV_TRIM_BIG_DOWN, "huyang.ELEV_TRIM_DOWN"},
     {SIM_STOP, NULL}};
 }  // namespace flight_panel

@@ -18,6 +18,7 @@ SerialSelect::~SerialSelect() { Clean(); }
   std::string pidStr = "PID_" + pid;
   for (auto device : GetComPort()) {
     const std::string& id = device.pnpID;
+    cout << device.pnpID;
     if (id.find(pidStr) != std::string::npos &&
         id.find(vidStr) != std::string::npos) {
       devices.push_back(device);

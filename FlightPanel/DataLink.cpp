@@ -13,12 +13,21 @@ namespace datalink {
 
 enum DEFINITION_ID {
   // Definition that reads all variables defined in SimVar.h
-  DEF_READ_ALL
+  DEF_READ_ALL,
+  DEF_WRITE,
 };
 
 enum REQUEST_ID {
   // The only request we would do is to read data.
   REQ_ID
+};
+
+enum INPUT_ID {
+  INPUT0,
+};
+
+enum GROUP_ID{
+  GROUP0,
 };
 
 HANDLE hSimConnect = NULL;
@@ -33,14 +42,49 @@ double* varStart = (double*)&simVars + 1;
 // callback that
 void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
   static int displayDelay = 0;
+  static double newTrim = 0;
   // event type.
   switch (pData->dwID) {
     case SIMCONNECT_RECV_ID_EVENT: {
       SIMCONNECT_RECV_EVENT* evt = (SIMCONNECT_RECV_EVENT*)pData;
       switch (evt->uEventID) {
         case SIM_START:
+          SimConnect_SetInputGroupState(hSimConnect, INPUT0,
+                                        SIMCONNECT_STATE_ON);
           break;
         case SIM_STOP:
+          SimConnect_SetInputGroupState(hSimConnect, INPUT0,
+                                        SIMCONNECT_STATE_OFF);
+          break;
+        case KEY_ELEV_TRIM_BIG_UP:
+          // compute new up.
+          printf("current trim: %f", simVars.tfElevatorTrimIndicator);
+          printf("\nnext trim: %f", simVars.tfElevatorTrimIndicator - 0.05);
+
+          newTrim = (int)((-simVars.tfElevatorTrimIndicator - 0.05)*16383);
+          if (SimConnect_TransmitClientEvent(
+                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET,
+                  (DWORD)newTrim,
+                  SIMCONNECT_GROUP_PRIORITY_HIGHEST,
+                  SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
+            printf("Failed to transmit event: %d\n",
+                   KEY_AXIS_ELEV_TRIM_SET);
+          } else {
+            printf("big trim up to: %f\n", newTrim);
+          }
+          break;
+        case KEY_ELEV_TRIM_BIG_DOWN:
+
+          newTrim = simVars.tfElevatorTrim - 0.1;
+          // compute new down.
+          if (SimConnect_TransmitClientEvent(
+                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET,
+                  (DWORD)newTrim,
+                  SIMCONNECT_GROUP_PRIORITY_HIGHEST,
+                  SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
+            printf("Failed to transmit event: %d\n",
+                   KEY_AXIS_ELEV_TRIM_SET);
+          }
           break;
         default:
           printf("Unknown event id: %ld\n", evt->uEventID);
@@ -68,9 +112,9 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
                       << std::endl
                       << "FlapCnt: " << simVars.tfFlapsCount
                       << "|FlapIdx: " << simVars.tfFlapsIndex << std::endl;
-            printf("Trim deflection: %f deg, trim Indicator: %f, Transponder code: %X\n\n", 
+            printf("Trim deflection: %f rad, trim Indicator: %f, Transponder code: %X\n\n", 
                    simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator, int(simVars.transponderCode));
-            displayDelay = 250;
+            displayDelay = 500;
           }
 #endif  // DEBUG_VARS
           break;
@@ -135,6 +179,14 @@ void MapEvents() {
       printf("Map event failed: %s\n", WriteEvents[i].name);
     }
   }
+  // Map input event to custom events.
+  SimConnect_MapInputEventToClientEvent(hSimConnect, INPUT0, "z",
+                                        KEY_ELEV_TRIM_BIG_UP);
+  SimConnect_SetInputGroupState(hSimConnect, INPUT0, SIMCONNECT_STATE_ON);
+  SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP0,
+                                               KEY_ELEV_TRIM_BIG_UP);
+  SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP0,
+                                               KEY_ELEV_TRIM_BIG_DOWN);
 }
 
 void SubscribeEvents() {

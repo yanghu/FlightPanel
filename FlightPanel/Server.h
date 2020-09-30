@@ -17,22 +17,23 @@ struct InstrumentData {
   char flapPos;
   // 0-unkonwn, 1-up, 2-down.
   char landingGearPos;
+  bool parkingBrakeOn;
 };
 
 class Server {
  public:
-  Server(const std::string& port, const SimVars* const sim);
+  Server(const std::string& port, const SimVars* const sim, int sendIntervalMilliseconds = 200);
   void Run();
   const static int kBufSize = 100;
 
  private:
   std::thread worker_;
-  char wBuf_[kBufSize];
-  char rBuf_[kBufSize];
+  char rBuf_[kBufSize] = {0};
   InstrumentData instrumentData_;
   int bufSize_ = 0;
   const SimVars* const sim_;
   SerialPort serial_;
+  const int sendIntervalMilliseconds_;
   void UpdateData();
   void ProcessRead(int bytesRead);
 };
