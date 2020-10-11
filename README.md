@@ -2,7 +2,7 @@
 
 MSFS2020 client to read data from SimConnect and send data to Arduino via serial ports. Also receives serial input from Arduino and send data to game via SimConnect API.
 
-Inspired by the [instrument project](https://github.com/scott-vincent/instrument-data-link), mostly reused the SimConnect data defs and communications code.
+Inspired by the [instrument project](https://github.com/scott-vincent/instrument-data-link) by Scott Vincent, mostly reused the SimConnect data defs and communications code.
 
 I mainly added Serial communication code to talk to the Arduinos, as well as Arduino input handling. (for customized trim up/down).
 
