@@ -1,8 +1,11 @@
 #include "DataLink.h"
 
+#include <iostream>
+#include <optional>
+
+#include "SerialPort.hpp"
 #include "SimConnect.h"
 #include "SimVars.h"
-#include <iostream>
 
 namespace flight_panel {
 
@@ -26,7 +29,7 @@ enum INPUT_ID {
   INPUT0,
 };
 
-enum GROUP_ID{
+enum GROUP_ID {
   GROUP0,
 };
 
@@ -37,6 +40,8 @@ int varSize = 0;
 // The first position is "connected", which is not part of the data read from
 // MSFS. +1 to skip it.
 double* varStart = (double*)&simVars + 1;
+// Step
+const double kTrimStep = 0.01;
 
 // DispathProcRD is the callback to consume SimConnect data.using This is the
 // callback that
@@ -58,32 +63,27 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
           break;
         case KEY_ELEV_TRIM_BIG_UP:
           // compute new up.
-          printf("current trim: %f", simVars.tfElevatorTrimIndicator);
-          printf("\nnext trim: %f", simVars.tfElevatorTrimIndicator - 0.05);
-
-          newTrim = (int)((-simVars.tfElevatorTrimIndicator - 0.05)*16383);
+          newTrim =
+              (int)((-simVars.tfElevatorTrimIndicator - kTrimStep) * 16383);
           if (SimConnect_TransmitClientEvent(
-                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET,
-                  (DWORD)newTrim,
+                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
                   SIMCONNECT_GROUP_PRIORITY_HIGHEST,
                   SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
-            printf("Failed to transmit event: %d\n",
-                   KEY_AXIS_ELEV_TRIM_SET);
+            printf("Failed to transmit event: %d\n", KEY_AXIS_ELEV_TRIM_SET);
           } else {
             printf("big trim up to: %f\n", newTrim);
           }
           break;
         case KEY_ELEV_TRIM_BIG_DOWN:
 
-          newTrim = simVars.tfElevatorTrim - 0.1;
+          newTrim =
+              (int)((-simVars.tfElevatorTrimIndicator + kTrimStep) * 16383);
           // compute new down.
           if (SimConnect_TransmitClientEvent(
-                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET,
-                  (DWORD)newTrim,
+                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
                   SIMCONNECT_GROUP_PRIORITY_HIGHEST,
                   SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
-            printf("Failed to transmit event: %d\n",
-                   KEY_AXIS_ELEV_TRIM_SET);
+            printf("Failed to transmit event: %d\n", KEY_AXIS_ELEV_TRIM_SET);
           }
           break;
         default:
@@ -108,12 +108,15 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
             printf("Aircraft: %s   Cruise Speed: %f\n", simVars.aircraft,
                    simVars.cruiseSpeed);
             std::cout << "Air speed: " << simVars.asiAirspeed
-                      << "\tVertical speed: " << simVars.vsiVerticalSpeed << "\tRPM: " << simVars.rpmEngine
-                      << std::endl
+                      << "\tVertical speed: " << simVars.vsiVerticalSpeed
+                      << "\tRPM: " << simVars.rpmEngine << std::endl
                       << "FlapCnt: " << simVars.tfFlapsCount
                       << "|FlapIdx: " << simVars.tfFlapsIndex << std::endl;
-            printf("Trim deflection: %f rad, trim Indicator: %f, Transponder code: %X\n\n", 
-                   simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator, int(simVars.transponderCode));
+            printf(
+                "Trim deflection: %f rad, trim Indicator: %f, Transponder "
+                "code: %X\n\n",
+                simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator,
+                int(simVars.transponderCode));
             displayDelay = 500;
           }
 #endif  // DEBUG_VARS
@@ -182,6 +185,8 @@ void MapEvents() {
   // Map input event to custom events.
   SimConnect_MapInputEventToClientEvent(hSimConnect, INPUT0, "z",
                                         KEY_ELEV_TRIM_BIG_UP);
+  SimConnect_MapInputEventToClientEvent(hSimConnect, INPUT0, "u",
+                                        KEY_ELEV_TRIM_BIG_DOWN);
   SimConnect_SetInputGroupState(hSimConnect, INPUT0, SIMCONNECT_STATE_ON);
   SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP0,
                                                KEY_ELEV_TRIM_BIG_UP);
@@ -214,14 +219,22 @@ void CleanUp() {
   }
 }
 
-int Run() {
+int Run(const std::string& inputComPort) {
+  printf("Input com port: %s", inputComPort.c_str());
   printf("DataLink %s\n", versionString);
   printf("Searching for local MS FS2020...\n");
-  simVars.connected = 0;
 
+  std::unique_ptr<SerialPort> serial;
+  
+  if (!inputComPort.empty())
+    serial.reset(new SerialPort(("\\\\.\\" + inputComPort).c_str()));
+  simVars.connected = 0;
+  char serialInputBuf[10];
   HRESULT result;
 
+  int bytesRead = 0;
   int retryDelay = 0;
+  double newTrim = 0;
   while (!quit) {
     if (simVars.connected) {
       result = SimConnect_CallDispatch(hSimConnect, MyDispatchProcRd, NULL);
@@ -229,6 +242,40 @@ int Run() {
         printf("Disconnected from MS FS2020\n");
         simVars.connected = 0;
         printf("Searching for local MS FS2020...\n");
+      }
+      if (serial && serial->isConnected()) {
+        // Handle input from serial.
+        bytesRead = serial->readSerialPort(serialInputBuf, 1);
+        if (bytesRead > 0) {
+          switch (serialInputBuf[0]) {
+            case 1:
+              // compute new up.
+              newTrim =
+                  (int)((-simVars.tfElevatorTrimIndicator - kTrimStep) * 16383);
+              if (SimConnect_TransmitClientEvent(
+                      hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
+                      SIMCONNECT_GROUP_PRIORITY_HIGHEST,
+                      SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
+                printf("Failed to transmit event: %d\n",
+                       KEY_AXIS_ELEV_TRIM_SET);
+              } else {
+                printf("big trim up to: %f\n", newTrim);
+              }
+              break;
+            case 2:
+              newTrim =
+                  (int)((-simVars.tfElevatorTrimIndicator + kTrimStep) * 16383);
+              // compute new down.
+              if (SimConnect_TransmitClientEvent(
+                      hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
+                      SIMCONNECT_GROUP_PRIORITY_HIGHEST,
+                      SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
+                printf("Failed to transmit event: %d\n",
+                       KEY_AXIS_ELEV_TRIM_SET);
+              }
+              break;
+          }
+        }
       }
     } else if (retryDelay > 0) {
       retryDelay--;

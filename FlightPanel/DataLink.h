@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <windows.h>
+#include <string>
 
 #include <thread>
 
@@ -10,7 +11,7 @@
 
 namespace flight_panel {
 namespace datalink {
-int Run();
+int Run(const std::string& inputSerialPort);
 const SimVars* const Read();
 
 }  // namespace datalink

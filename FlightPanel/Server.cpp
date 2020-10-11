@@ -1,6 +1,7 @@
 #include "Server.h"
 
 #include <thread>
+// #define TEST_LED
 
 namespace flight_panel {
 void Log(const std::string& msg) { std::cout << msg; }
@@ -20,7 +21,11 @@ void flight_panel::Server::Run() {
       Sleep(10000);
       continue;
     }
+#ifdef TEST_LED
+    instrumentData_ = InstrumentData{0, 3, 1, 80, 1};
+#else
     UpdateData();
+#endif
     if (!serial_.writeSerialPort((char*)&instrumentData_,
                                  sizeof(InstrumentData)))
       Log("Failed to write to serial port!");
@@ -37,7 +42,8 @@ void Server::UpdateData() {
   instrumentData_.trimPos = (char)round(sim_->tfElevatorTrimIndicator * 100);
   instrumentData_.flapCnt = (char)sim_->tfFlapsCount;
   instrumentData_.flapPos = (char)sim_->tfFlapsIndex;
-  instrumentData_.landingGearPos = (char)sim_->gearPosition;
+  // Gear position is 0~1 float value. 1 is full extended.
+  instrumentData_.landingGearPos = (char)(sim_->gearPosition*100);
   instrumentData_.parkingBrakeOn = sim_->parkingBrakeOn;
 }
 
