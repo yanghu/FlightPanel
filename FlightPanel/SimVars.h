@@ -69,8 +69,9 @@ struct SimVars {
   double autopilotMach = 0;
   double autopilotAirspeedHold = 0;
   double gearRetractable = 1;
-  // Landing gear position.
-  // Enum. 0: unknown. 1:up, 2:down.
+  // Landing gear position. 
+  // Enum. 0: unknown. 1:up, 2:down.  (from documentation)
+  // However, the actual value read from sim is float 0~1.
   double gearPosition = 0;
   double gearLeftPos = 100;
   double gearCentrePos = 100;

@@ -25,9 +25,6 @@ enum REQUEST_ID {
   REQ_ID
 };
 
-enum INPUT_ID {
-  INPUT0,
-};
 
 enum GROUP_ID {
   GROUP0,
@@ -54,37 +51,8 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
       SIMCONNECT_RECV_EVENT* evt = (SIMCONNECT_RECV_EVENT*)pData;
       switch (evt->uEventID) {
         case SIM_START:
-          SimConnect_SetInputGroupState(hSimConnect, INPUT0,
-                                        SIMCONNECT_STATE_ON);
           break;
         case SIM_STOP:
-          SimConnect_SetInputGroupState(hSimConnect, INPUT0,
-                                        SIMCONNECT_STATE_OFF);
-          break;
-        case KEY_ELEV_TRIM_BIG_UP:
-          // compute new up.
-          newTrim =
-              (int)((-simVars.tfElevatorTrimIndicator - kTrimStep) * 16383);
-          if (SimConnect_TransmitClientEvent(
-                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
-                  SIMCONNECT_GROUP_PRIORITY_HIGHEST,
-                  SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
-            printf("Failed to transmit event: %d\n", KEY_AXIS_ELEV_TRIM_SET);
-          } else {
-            printf("big trim up to: %f\n", newTrim);
-          }
-          break;
-        case KEY_ELEV_TRIM_BIG_DOWN:
-
-          newTrim =
-              (int)((-simVars.tfElevatorTrimIndicator + kTrimStep) * 16383);
-          // compute new down.
-          if (SimConnect_TransmitClientEvent(
-                  hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
-                  SIMCONNECT_GROUP_PRIORITY_HIGHEST,
-                  SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
-            printf("Failed to transmit event: %d\n", KEY_AXIS_ELEV_TRIM_SET);
-          }
           break;
         default:
           printf("Unknown event id: %ld\n", evt->uEventID);
@@ -182,16 +150,6 @@ void MapEvents() {
       printf("Map event failed: %s\n", WriteEvents[i].name);
     }
   }
-  // Map input event to custom events.
-  SimConnect_MapInputEventToClientEvent(hSimConnect, INPUT0, "z",
-                                        KEY_ELEV_TRIM_BIG_UP);
-  SimConnect_MapInputEventToClientEvent(hSimConnect, INPUT0, "u",
-                                        KEY_ELEV_TRIM_BIG_DOWN);
-  SimConnect_SetInputGroupState(hSimConnect, INPUT0, SIMCONNECT_STATE_ON);
-  SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP0,
-                                               KEY_ELEV_TRIM_BIG_UP);
-  SimConnect_AddClientEventToNotificationGroup(hSimConnect, GROUP0,
-                                               KEY_ELEV_TRIM_BIG_DOWN);
 }
 
 void SubscribeEvents() {
@@ -249,7 +207,7 @@ int Run(const std::string& inputComPort) {
         if (bytesRead > 0) {
           switch (serialInputBuf[0]) {
             case 1:
-              // compute new up.
+              // compute new trim pos(up).
               newTrim =
                   (int)((-simVars.tfElevatorTrimIndicator - kTrimStep) * 16383);
               if (SimConnect_TransmitClientEvent(
@@ -263,9 +221,9 @@ int Run(const std::string& inputComPort) {
               }
               break;
             case 2:
+              // compute new trim pos (down).
               newTrim =
                   (int)((-simVars.tfElevatorTrimIndicator + kTrimStep) * 16383);
-              // compute new down.
               if (SimConnect_TransmitClientEvent(
                       hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
                       SIMCONNECT_GROUP_PRIORITY_HIGHEST,

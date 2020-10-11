@@ -43,6 +43,7 @@ void Server::UpdateData() {
   instrumentData_.flapCnt = (char)sim_->tfFlapsCount;
   instrumentData_.flapPos = (char)sim_->tfFlapsIndex;
   // Gear position is 0~1 float value. 1 is full extended.
+  // Convert to 0~100 and send it as 8bit char.
   instrumentData_.landingGearPos = (char)(sim_->gearPosition*100);
   instrumentData_.parkingBrakeOn = sim_->parkingBrakeOn;
 }

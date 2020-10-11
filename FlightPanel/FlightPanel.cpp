@@ -15,6 +15,7 @@
 int main() {
   using namespace flight_panel;
   SerialSelect selector{};
+  // Get the com port of the ProMicro board. The PID/VID are customized.
   auto results = selector.GetComPort("2340", "8030");
   const char* inputComPort;
   if (results.size() == 0) {
@@ -24,9 +25,11 @@ int main() {
     std::cout << results[0].comPort << std::endl;
   }
     
+  // Port number of my UNO. the UNO's port cannot be obtained using "GetComPort" so we 
+  // have to hard code it.
   const char myPort[] = "COM21";
  
-  // Serial port server to communicate with the panel motors.
+  // Serial port server to communicate with the panel motors and LEDs.
   Server server(myPort, datalink::Read(), 500);
   auto thread = std::thread(&Server::Run, &server);
   // Runs the datalink
