@@ -1,16 +1,15 @@
 // FlightPanel.cpp : This file contains the 'main' function. Program execution
 // begins and ends there.
 //
-
-#include <Windows.h>
-
 #include <iostream>
 #include <string>
 
+#include "WebSocketServer.h"
 #include "DataLink.h"
 #include "SerialPort.hpp"
 #include "SerialSelect.h"
 #include "Server.h"
+#include <Windows.h>
 
 int main() {
   using namespace flight_panel;
@@ -31,9 +30,15 @@ int main() {
  
   // Serial port server to communicate with the panel motors and LEDs.
   Server server(myPort, datalink::Read(), 500);
-  auto thread = std::thread(&Server::Run, &server);
+  auto serial_thread = std::thread(&Server::Run, &server);
+
+  WebSocketServer wsServer;
+  auto ws_thread = std::thread(&WebSocketServer::run, &wsServer, 8080);
+
   // Runs the datalink
   datalink::Run(inputComPort);
-  thread.join();
+
+  serial_thread.join();
+  ws_thread.join();
   return 0;
 }

@@ -88,7 +88,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <LanguageStandard>Default</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -108,7 +110,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <LanguageStandard>Default</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,7 +132,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <LanguageStandard>Default</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -148,7 +154,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <LanguageStandard>Default</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -169,12 +177,14 @@
     <ClCompile Include="SerialSelect.cpp" />
     <ClCompile Include="Server.cpp" />
     <ClCompile Include="SimVars.cpp" />
+    <ClCompile Include="WebSocketServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataLink.h" />
     <ClInclude Include="SerialSelect.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="SimVars.h" />
+    <ClInclude Include="WebSocketServer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
