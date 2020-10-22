@@ -132,14 +132,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
       <LanguageStandard>Default</LanguageStandard>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(MSFS_SDK)\SimConnect SDK\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MSFS_SDK)\SimConnect SDK\lib;$(VcpkgInstalledDir)/x64-windows/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>SimConnect.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -154,7 +154,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
       <LanguageStandard>Default</LanguageStandard>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -163,7 +163,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(MSFS_SDK)\SimConnect SDK\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MSFS_SDK)\SimConnect SDK\lib;$(VcpkgInstalledDir)/x64-windows/lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>SimConnect.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -175,14 +175,14 @@
     <ClCompile Include="DataLink.cpp" />
     <ClCompile Include="FlightPanel.cpp" />
     <ClCompile Include="SerialSelect.cpp" />
-    <ClCompile Include="Server.cpp" />
+    <ClCompile Include="SerialServer.cpp" />
     <ClCompile Include="SimVars.cpp" />
     <ClCompile Include="WebSocketServer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataLink.h" />
     <ClInclude Include="SerialSelect.h" />
-    <ClInclude Include="Server.h" />
+    <ClInclude Include="SerialServer.h" />
     <ClInclude Include="SimVars.h" />
     <ClInclude Include="WebSocketServer.h" />
   </ItemGroup>

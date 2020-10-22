@@ -30,10 +30,10 @@
     <ClCompile Include="..\..\SerialPort\src\SerialPort.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Server.cpp">
+    <ClCompile Include="WebSocketServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="WebSocketServer.cpp">
+    <ClCompile Include="SerialServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,10 +47,10 @@
     <ClInclude Include="SimVars.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Server.h">
+    <ClInclude Include="WebSocketServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WebSocketServer.h">
+    <ClInclude Include="SerialServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

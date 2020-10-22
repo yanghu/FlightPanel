@@ -20,9 +20,9 @@ struct InstrumentData {
   bool parkingBrakeOn;
 };
 
-class Server {
+class SerialServer {
  public:
-  Server(const std::string& port, const SimVars* const sim, int sendIntervalMilliseconds = 200);
+  SerialServer(const std::string& port, const SimVars* const sim, int sendIntervalMilliseconds = 200);
   void Run();
   const static int kBufSize = 100;
 
