@@ -3,6 +3,8 @@
 #include <iostream>
 #include <optional>
 
+#include "spdlog/spdlog.h"
+
 #include "SerialPort.hpp"
 #include "SimConnect.h"
 #include "SimVars.h"
@@ -55,7 +57,7 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
         case SIM_STOP:
           break;
         default:
-          printf("Unknown event id: %ld\n", evt->uEventID);
+          SPDLOG_ERROR("Unknown event id: {:d}", evt->uEventID);
           break;
       }
       break;  // Case EVENT
@@ -73,16 +75,16 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
             displayDelay--;
 
           else {
-            printf("Aircraft: %s   Cruise Speed: %f\n", simVars.aircraft,
+            SPDLOG_INFO("Aircraft: {}   Cruise Speed: {}", simVars.aircraft,
                    simVars.cruiseSpeed);
             std::cout << "Air speed: " << simVars.asiAirspeed
                       << "\tVertical speed: " << simVars.vsiVerticalSpeed
                       << "\tRPM: " << simVars.rpmEngine << std::endl
                       << "FlapCnt: " << simVars.tfFlapsCount
                       << "|FlapIdx: " << simVars.tfFlapsIndex << std::endl;
-            printf(
-                "Trim deflection: %f rad, trim Indicator: %f, Transponder "
-                "code: %X\n\n",
+            SPDLOG_INFO(
+                "Trim deflection: {} rad, trim Indicator: {}, Transponder "
+                "code: {:X}",
                 simVars.tfElevatorTrim, simVars.tfElevatorTrimIndicator,
                 int(simVars.transponderCode));
             displayDelay = 500;
@@ -90,7 +92,7 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
 #endif  // DEBUG_VARS
           break;
         default:
-          printf("Unknown request id: %ld\n", pObjData->dwRequestID);
+          SPDLOG_ERROR("Unknown request id: {}", pObjData->dwRequestID);
           break;
       }       // Switch pObjData
       break;  // Case SIMOBJECT_DATA.
@@ -122,7 +124,7 @@ void AddReadDefs() {
       if (SimConnect_AddToDataDefinition(hSimConnect, DEF_READ_ALL,
                                          SimVarDefs[i][0], NULL,
                                          dataType) < 0) {
-        printf("Data def failed: %s (string)\n", SimVarDefs[i][0]);
+        SPDLOG_ERROR("Data def failed: {} (string)\n", SimVarDefs[i][0]);
       } else {
         varSize += dataLen;
       }
@@ -131,7 +133,7 @@ void AddReadDefs() {
       if (SimConnect_AddToDataDefinition(hSimConnect, DEF_READ_ALL,
                                          SimVarDefs[i][0],
                                          SimVarDefs[i][1]) < 0) {
-        printf("Data def failed: %s, %s\n", SimVarDefs[i][0], SimVarDefs[i][1]);
+        SPDLOG_ERROR("Data def failed: {}, {}", SimVarDefs[i][0], SimVarDefs[i][1]);
       } else {
         varSize += sizeof(double);
       }
@@ -147,7 +149,7 @@ void MapEvents() {
 
     if (SimConnect_MapClientEventToSimEvent(hSimConnect, WriteEvents[i].id,
                                             WriteEvents[i].name) != 0) {
-      printf("Map event failed: %s\n", WriteEvents[i].name);
+      SPDLOG_WARN("Map event failed: {}", WriteEvents[i].name);
     }
   }
 }
@@ -156,11 +158,11 @@ void SubscribeEvents() {
   // Request an event when the simulation starts
   if (SimConnect_SubscribeToSystemEvent(hSimConnect, SIM_START, "SimStart") <
       0) {
-    printf("Subscribe event failed: SimStart\n");
+    SPDLOG_WARN("Subscribe event failed: SimStart");
   }
 
   if (SimConnect_SubscribeToSystemEvent(hSimConnect, SIM_STOP, "SimStop") < 0) {
-    printf("Subscribe event failed: SimStop\n");
+    SPDLOG_WARN("Subscribe event failed: SimStop");
   }
 }
 
@@ -169,18 +171,19 @@ void CleanUp() {
     if (SimConnect_RequestDataOnSimObject(
             hSimConnect, REQ_ID, DEF_READ_ALL, SIMCONNECT_OBJECT_ID_USER,
             SIMCONNECT_PERIOD_NEVER, 0, 0, 0, 0) < 0) {
-      printf("Failed to stop requesting data\n");
+      SPDLOG_WARN("Failed to stop requesting data.");
     }
 
-    printf("Disconnecting from MS FS2020\n");
+    SPDLOG_INFO("Disconnecting from MS FS2020");
     SimConnect_Close(hSimConnect);
   }
 }
 
 int Run(const std::string& inputComPort) {
-  printf("Input com port: %s", inputComPort.c_str());
-  printf("DataLink %s\n", versionString);
-  printf("Searching for local MS FS2020...\n");
+  std::cout << "DataLink " << versionString << std::endl;
+  std::cout << "Searching for local MS FS2020..." << std::endl;
+
+  SPDLOG_INFO("Input com port: {}", inputComPort);
 
   std::unique_ptr<SerialPort> serial;
   
@@ -197,9 +200,9 @@ int Run(const std::string& inputComPort) {
     if (simVars.connected) {
       result = SimConnect_CallDispatch(hSimConnect, MyDispatchProcRd, NULL);
       if (result != 0) {
-        printf("Disconnected from MS FS2020\n");
+        SPDLOG_INFO("Disconnected from MS FS2020");
         simVars.connected = 0;
-        printf("Searching for local MS FS2020...\n");
+        SPDLOG_INFO("Searching for local MS FS2020...");
       }
       if (serial && serial->isConnected()) {
         // Handle input from serial.
@@ -214,10 +217,10 @@ int Run(const std::string& inputComPort) {
                       hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
                       SIMCONNECT_GROUP_PRIORITY_HIGHEST,
                       SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
-                printf("Failed to transmit event: %d\n",
+                SPDLOG_WARN("Failed to transmit event: {}\n",
                        KEY_AXIS_ELEV_TRIM_SET);
               } else {
-                printf("big trim up to: %f\n", newTrim);
+                SPDLOG_INFO("big trim up to: {}", newTrim);
               }
               break;
             case 2:
@@ -228,8 +231,8 @@ int Run(const std::string& inputComPort) {
                       hSimConnect, 0, KEY_AXIS_ELEV_TRIM_SET, (DWORD)newTrim,
                       SIMCONNECT_GROUP_PRIORITY_HIGHEST,
                       SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
-                printf("Failed to transmit event: %d\n",
-                       KEY_AXIS_ELEV_TRIM_SET);
+                SPDLOG_ERROR("Failed to transmit event: {}",
+                  KEY_AXIS_ELEV_TRIM_SET);
               }
               break;
           }
@@ -241,7 +244,7 @@ int Run(const std::string& inputComPort) {
       result =
           SimConnect_Open(&hSimConnect, "Instrument Data Link", NULL, 0, 0, 0);
       if (result == 0) {
-        printf("Connected to MS FS2020\n");
+        SPDLOG_INFO("Connected to MS FS2020");
         AddReadDefs();
         MapEvents();
         SubscribeEvents();
@@ -251,7 +254,7 @@ int Run(const std::string& inputComPort) {
         if (SimConnect_RequestDataOnSimObject(
                 hSimConnect, REQ_ID, DEF_READ_ALL, SIMCONNECT_OBJECT_ID_USER,
                 SIMCONNECT_PERIOD_VISUAL_FRAME, 0, 0, 0, 0) < 0) {
-          printf("Failed to start requesting data\n");
+          SPDLOG_ERROR("Failed to start requesting data");
         }
       } else {
         retryDelay = 200;

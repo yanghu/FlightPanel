@@ -1,4 +1,6 @@
 #include "SerialSelect.h"
+#include "spdlog/spdlog.h"
+
 #define _WIN32_DCOM
 #include <iostream>
 #include <codecvt>
@@ -14,11 +16,12 @@ SerialSelect::~SerialSelect() { Clean(); }
   std::vector<SerialDevice> SerialSelect::GetComPort(const std::string& vid,
                                              const std::string& pid) {
   std::vector<SerialDevice> devices;
-    std::string vidStr = "VID_" + vid;
+  std::string vidStr = "VID_" + vid;
   std::string pidStr = "PID_" + pid;
   for (auto device : GetComPort()) {
     const std::string& id = device.pnpID;
-    cout << device.pnpID;
+    SPDLOG_DEBUG("Device PNP ID: {}", device.pnpID);
+
     if (id.find(pidStr) != std::string::npos &&
         id.find(vidStr) != std::string::npos) {
       devices.push_back(device);

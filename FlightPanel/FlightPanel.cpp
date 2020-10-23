@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 
+#include "spdlog/spdlog.h"
+
 #include "WebSocketServer.h"
 #include "DataLink.h"
 #include "SerialPort.hpp"
@@ -11,8 +13,17 @@
 #include "SerialServer.h"
 #include <Windows.h>
 
+#define LOG_INFO SPDLOG_INFO
+
+// See: https://github.com/gabime/spdlog/wiki/3.-Custom-formatting
+// Example output: 
+//   [23:31:01]|[DataLink.cpp:186][info]: Input com port:
+void SetupLogger() { spdlog::set_pattern("[%T]|[%s:%#]%^[%l]%$: %v"); }
+
 int main() {
   using namespace flight_panel;
+  SetupLogger();
+
   SerialSelect selector{};
   // Get the com port of the ProMicro board. The PID/VID are customized.
   auto results = selector.GetComPort("2340", "8030");
@@ -21,7 +32,7 @@ int main() {
     inputComPort = "";
   } else {
     inputComPort = results[0].comPort.c_str();
-    std::cout << results[0].comPort << std::endl;
+    LOG_INFO("Input Serial COM port: {}", results[0].comPort);
   }
     
   // Port number of my UNO. the UNO's port cannot be obtained using "GetComPort" so we 

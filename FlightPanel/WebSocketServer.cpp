@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "absl/synchronization/mutex.h"
+#include "spdlog/spdlog.h"
 
 namespace flight_panel {
 namespace ws {
@@ -12,8 +13,7 @@ void SendMsg(Server* server, websocketpp::connection_hdl connection,
   try {
     server->send(connection, message->get_payload(), message->get_opcode());
   } catch (websocketpp::exception const& e) {
-    std::cout << "Echo failed because: "
-              << "(" << e.what() << ")" << std::endl;
+    SPDLOG_ERROR("Send message failed because: {} ", e.what());
   }
 }
 }  // namespace
@@ -28,17 +28,30 @@ WebSocketServer::WebSocketServer() {
   server_.set_message_handler(
       std::bind(&WebSocketServer::OnMessage, this, _1, _2));
   server_.set_open_handler(std::bind(&WebSocketServer::OnOpen, this, _1));
+  server_.set_close_handler(std::bind(&WebSocketServer::OnClose, this, _1));
+}
+
+void WebSocketServer::PushNewEvent(const WSEvent& event) {
+  absl::MutexLock l(&events_lock_);
+  events_.push(WSEvent{event});
+
 }
 
 void WebSocketServer::OnMessage(websocketpp::connection_hdl connection,
                                 Server::message_ptr message) {
-  absl::MutexLock l(&events_lock_);
-  events_.push(WSEvent{EventType::MESSAGE, connection, message});
+  PushNewEvent(WSEvent{EventType::MESSAGE, connection, message});
+  SPDLOG_INFO("OnMessage: {}", message->get_payload());
 }
 
 void WebSocketServer::OnOpen(websocketpp::connection_hdl connection) {
-  absl::MutexLock l(&events_lock_);
-  events_.push(WSEvent{EventType::SUBSCRIBE, connection});
+  PushNewEvent(WSEvent{EventType::SUBSCRIBE, connection});
+  SPDLOG_INFO("OnOpen: new connection pushed");
+}
+
+
+void WebSocketServer::OnClose(websocketpp::connection_hdl connection) {
+  PushNewEvent(WSEvent{EventType::UNSUBSCRIBE, connection});
+  SPDLOG_INFO("OnClose: UNSUBSCRIBE pushed");
 }
 
 void WebSocketServer::ProcessEvents() {
@@ -55,12 +68,15 @@ void WebSocketServer::ProcessEvents() {
       case EventType::SUBSCRIBE: {
         absl::MutexLock l(&connections_lock_);
         connections_.insert(event.connection);
-        std::cout << "New connection added." << std::endl;
+        SPDLOG_INFO("New connection added. Connection count: {}",
+                     connections_.size());
         break;
       }
       case EventType::UNSUBSCRIBE: {
         absl::MutexLock l(&connections_lock_);
         connections_.erase(event.connection);
+        SPDLOG_INFO("Connection closed. Connection count: {}",
+                     connections_.size());
         break;
       }
       case EventType::MESSAGE: {
@@ -72,7 +88,7 @@ void WebSocketServer::ProcessEvents() {
 }
 
 void WebSocketServer::HandleMessage(Server::message_ptr message) {
-  std::cout << message->get_payload() << std::endl;
+  SPDLOG_INFO("Message Received: {}", message->get_payload());
 }
 
 void WebSocketServer::Run(uint16_t port) {
