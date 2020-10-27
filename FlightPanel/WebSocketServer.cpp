@@ -3,6 +3,8 @@
 #include <memory>
 
 #include "absl/synchronization/mutex.h"
+#include "absl/random/random.h"
+#include "absl/time/clock.h"
 #include "spdlog/spdlog.h"
 
 namespace flight_panel {
@@ -16,15 +18,42 @@ void SendMsg(Server* server, websocketpp::connection_hdl connection,
     SPDLOG_ERROR("Send message failed because: {} ", e.what());
   }
 }
+
+SimData FakeSimData() {
+  SimData data;
+  const int kMaxSpeed = 180;
+  static double speed = 0;
+  data.mutable_aircraft_info()->set_call_sign("AXSGS");
+  absl::BitGen bitgen;
+  speed += 0.4;
+  if (speed > kMaxSpeed) {
+    speed -= kMaxSpeed;
+  }
+  auto instruments = data.mutable_instruments();
+  instruments->set_indicated_airspeed(speed);
+  instruments->set_pitch_angle(int(speed)%30);
+  instruments->set_bank_angle(int(speed)%60);
+  instruments->set_kohlsman_setting_hg(29.92);
+  instruments->set_indicated_altitude(int(speed*50)%9000);
+  return data;
+
+}
 }  // namespace
+
 using websocketpp::lib::placeholders::_1;
 using websocketpp::lib::placeholders::_2;
 
 WebSocketServer::WebSocketServer() {
   server_.init_asio();
-  server_.set_error_channels(websocketpp::log::elevel::all);
-  server_.set_access_channels(websocketpp::log::alevel::all ^
-                              websocketpp::log::alevel::frame_payload);
+  //server_.set_error_channels(websocketpp::log::elevel::all);
+  //server_.set_access_channels(websocketpp::log::alevel::all ^
+   //                           websocketpp::log::alevel::frame_payload);
+  server_.clear_access_channels(websocketpp::log::alevel::frame_header |
+                               websocketpp::log::alevel::frame_payload);
+  // this will turn off console output for frame header and payload
+
+  server_.clear_access_channels(websocketpp::log::alevel::all);
+  // this will turn off everything in console output
   server_.set_message_handler(
       std::bind(&WebSocketServer::OnMessage, this, _1, _2));
   server_.set_open_handler(std::bind(&WebSocketServer::OnOpen, this, _1));
@@ -95,6 +124,34 @@ void WebSocketServer::Run(uint16_t port) {
   server_.listen(port);
   server_.start_accept();
   server_.run();
+}
+
+void WebSocketServer::Broadcast(const std::string& payload) {
+  // Construct the message
+  {
+    absl::MutexLock l(&connections_lock_);
+    // SPDLOG_INFO("Broadcasting data: {}", payload);
+    for (auto connection : connections_) {
+      try {
+        server_.send(connection, payload, websocketpp::frame::opcode::binary);
+      } catch (websocketpp::exception const& e) {
+        SPDLOG_ERROR("Send message failed because: {} ", e.what());
+      }
+    }
+  }
+}
+
+void SimDataBroadcaster::Run(absl::Duration delay) {
+  while (true) {
+    sim_data_ = ConvertSimData();
+    server_->Broadcast(sim_data_.SerializeAsString());
+    //server_->Broadcast("Hello world");
+    absl::SleepFor(delay);
+  }
+}
+SimData SimDataBroadcaster::ConvertSimData() { 
+  // produce fake data for debugging.
+  return FakeSimData();
 }
 }  // namespace ws
 }  // namespace flight_panel

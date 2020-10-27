@@ -36,6 +36,9 @@
     <ClCompile Include="SerialServer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\angular\flight-dashboard\src\proto\gen\sim_data.pb.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SerialSelect.h">
@@ -51,6 +54,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SerialServer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\angular\flight-dashboard\src\proto\gen\sim_data.pb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

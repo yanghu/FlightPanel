@@ -6,9 +6,13 @@
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
+#include "SimVars.h"
+#include "sim_data.pb.h"
+
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/time/time.h"
 
 namespace flight_panel {
 namespace ws {
@@ -43,6 +47,7 @@ class WebSocketServer {
 
   // Listen to port and run the Ws server
   void Run(uint16_t port);
+  void Broadcast(const std::string& payload) LOCKS_EXCLUDED(connections_lock_);
   // Loop that processes incoming connections and messages.
   void ProcessEvents();
 
@@ -54,7 +59,7 @@ class WebSocketServer {
 
   void HandleMessage(Server::message_ptr message);
 
-  void PushNewEvent(const WSEvent& evt) LOCKS_EXCLUDED(events_);
+  void PushNewEvent(const WSEvent& evt) LOCKS_EXCLUDED(events_lock_);
 
   // The WS server.
   Server server_;
@@ -65,5 +70,22 @@ class WebSocketServer {
   absl::Mutex connections_lock_;
   absl::Mutex events_lock_;
 };
+
+class SimDataBroadcaster {
+ public:
+  SimDataBroadcaster(std::unique_ptr<WebSocketServer> server,
+                     const SimVars* const sim_vars)
+      : server_(std::move(server)), sim_vars_(sim_vars){};
+
+  void Run(absl::Duration delay = absl::Milliseconds(10));
+
+ private:
+   // Converts simvar struct into SimData proto.
+  SimData ConvertSimData();
+  SimData sim_data_;
+  std::unique_ptr<WebSocketServer> server_;
+  const SimVars* const sim_vars_;
+};
+
 }  // namespace ws
 }  // namespace flight_panel

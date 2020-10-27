@@ -132,7 +132,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include;$(VcpkgInstalledDir)/x64-windows/include;C:\Users\Yang\source\repos\angular\flight-dashboard\src\proto\gen</AdditionalIncludeDirectories>
       <LanguageStandard>Default</LanguageStandard>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -154,7 +154,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>DEBUG_VARS;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\Yang\source\repos\library\asio-1.18.0\include;C:\Users\Yang\source\repos\library\websocketpp;$(MSFS_SDK)\SimConnect SDK\include;C:\Users\Yang\source\repos\SerialPort\include;$(VcpkgInstalledDir)/x64-windows/include;C:\Users\Yang\source\repos\angular\flight-dashboard\src\proto\gen</AdditionalIncludeDirectories>
       <LanguageStandard>Default</LanguageStandard>
       <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -171,6 +171,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\angular\flight-dashboard\src\proto\gen\sim_data.pb.cc" />
     <ClCompile Include="..\..\SerialPort\src\SerialPort.cpp" />
     <ClCompile Include="DataLink.cpp" />
     <ClCompile Include="FlightPanel.cpp" />
@@ -180,6 +181,7 @@
     <ClCompile Include="WebSocketServer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\angular\flight-dashboard\src\proto\gen\sim_data.pb.h" />
     <ClInclude Include="DataLink.h" />
     <ClInclude Include="SerialSelect.h" />
     <ClInclude Include="SerialServer.h" />
