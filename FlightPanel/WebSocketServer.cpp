@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "absl/synchronization/mutex.h"
 #include "absl/random/random.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "spdlog/spdlog.h"
 
@@ -19,24 +19,37 @@ void SendMsg(Server* server, websocketpp::connection_hdl connection,
   }
 }
 
-SimData FakeSimData() {
+SimData GenerateFakeSimData(int seed, int rate) {
   SimData data;
-  const int kMaxSpeed = 180;
-  static double speed = 0;
-  data.mutable_aircraft_info()->set_call_sign("AXSGS");
-  absl::BitGen bitgen;
-  speed += 0.4;
-  if (speed > kMaxSpeed) {
-    speed -= kMaxSpeed;
-  }
-  auto instruments = data.mutable_instruments();
-  instruments->set_indicated_airspeed(speed);
-  instruments->set_pitch_angle(int(speed)%30);
-  instruments->set_bank_angle(int(speed)%60);
-  instruments->set_kohlsman_setting_hg(29.92);
-  instruments->set_indicated_altitude(int(speed*50)%9000);
-  return data;
+  double counter = (double)seed / rate;
+  double sinewave = sin(counter);
+  double sinewave_slow = sin(counter / 5);
 
+  data.mutable_aircraft_info()->set_call_sign("AXSGS");
+  auto instruments = data.mutable_instruments();
+  instruments->set_indicated_airspeed(100 * (1 + sinewave));
+  instruments->set_bank_angle(50 * sinewave);
+  instruments->set_pitch_angle(30 * sinewave_slow);
+  instruments->set_kohlsman_setting_hg(29.92 + sinewave_slow);
+  instruments->set_indicated_altitude(100 * counter);
+  instruments->set_heading_indicator_deg(fmod(counter * 10, 360));
+  instruments->set_vertical_speed(20 * sinewave);
+  instruments->set_turn_indicator_rate(30 * sinewave);
+  instruments->set_turn_coordinator_ball(0.5 + 0.5 * sinewave);
+  auto nav_data = data.mutable_nav_data();
+  nav_data->mutable_hsi_1()->set_course(10 * sinewave);
+  nav_data->mutable_hsi_2()->set_course(-20 * sinewave);
+  auto avionics = data.mutable_avionics();
+  avionics->mutable_cdi_1()->set_radial_error(-40* sinewave);
+  avionics->mutable_cdi_2()->set_radial_error(40 * sinewave);
+  return data;
+}
+
+SimData FakeSimData() {
+  static double cnt = 0;
+  const int kRate = 30;
+  cnt += 1;
+  return GenerateFakeSimData(cnt, kRate);
 }
 }  // namespace
 
@@ -45,11 +58,11 @@ using websocketpp::lib::placeholders::_2;
 
 WebSocketServer::WebSocketServer() {
   server_.init_asio();
-  //server_.set_error_channels(websocketpp::log::elevel::all);
-  //server_.set_access_channels(websocketpp::log::alevel::all ^
-   //                           websocketpp::log::alevel::frame_payload);
+  // server_.set_error_channels(websocketpp::log::elevel::all);
+  // server_.set_access_channels(websocketpp::log::alevel::all ^
+  //                           websocketpp::log::alevel::frame_payload);
   server_.clear_access_channels(websocketpp::log::alevel::frame_header |
-                               websocketpp::log::alevel::frame_payload);
+                                websocketpp::log::alevel::frame_payload);
   // this will turn off console output for frame header and payload
 
   server_.clear_access_channels(websocketpp::log::alevel::all);
@@ -63,7 +76,6 @@ WebSocketServer::WebSocketServer() {
 void WebSocketServer::PushNewEvent(const WSEvent& event) {
   absl::MutexLock l(&events_lock_);
   events_.push(WSEvent{event});
-
 }
 
 void WebSocketServer::OnMessage(websocketpp::connection_hdl connection,
@@ -76,7 +88,6 @@ void WebSocketServer::OnOpen(websocketpp::connection_hdl connection) {
   PushNewEvent(WSEvent{EventType::SUBSCRIBE, connection});
   SPDLOG_INFO("OnOpen: new connection pushed");
 }
-
 
 void WebSocketServer::OnClose(websocketpp::connection_hdl connection) {
   PushNewEvent(WSEvent{EventType::UNSUBSCRIBE, connection});
@@ -98,14 +109,14 @@ void WebSocketServer::ProcessEvents() {
         absl::MutexLock l(&connections_lock_);
         connections_.insert(event.connection);
         SPDLOG_INFO("New connection added. Connection count: {}",
-                     connections_.size());
+                    connections_.size());
         break;
       }
       case EventType::UNSUBSCRIBE: {
         absl::MutexLock l(&connections_lock_);
         connections_.erase(event.connection);
         SPDLOG_INFO("Connection closed. Connection count: {}",
-                     connections_.size());
+                    connections_.size());
         break;
       }
       case EventType::MESSAGE: {
@@ -145,11 +156,11 @@ void SimDataBroadcaster::Run(absl::Duration delay) {
   while (true) {
     sim_data_ = ConvertSimData();
     server_->Broadcast(sim_data_.SerializeAsString());
-    //server_->Broadcast("Hello world");
+    // server_->Broadcast("Hello world");
     absl::SleepFor(delay);
   }
 }
-SimData SimDataBroadcaster::ConvertSimData() { 
+SimData SimDataBroadcaster::ConvertSimData() {
   // produce fake data for debugging.
   return FakeSimData();
 }

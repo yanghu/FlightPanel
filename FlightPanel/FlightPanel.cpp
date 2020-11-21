@@ -54,7 +54,7 @@ int main() {
       std::unique_ptr<ws::WebSocketServer>(&wsServer), datalink::Read());
   auto broadcast_thread =
       std::thread(&ws::SimDataBroadcaster::Run, &broadcaster, 
-        absl::Milliseconds(20));
+        absl::Milliseconds(10));
 
   // Runs the datalink
   datalink::Run(inputComPort);
