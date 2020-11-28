@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "SimVars.h"
+#include "data_def/sim_vars.h"
 namespace flight_panel {
 const char* versionString = "v1.3.0";
 

@@ -7,11 +7,12 @@
 #include <string>
 #include <memory>
 
+#include "serial_server/port_finder.h"
 #include "DataLink.h"
 #include "SerialPort.hpp"
-#include "SerialSelect.h"
+
 #include "SerialServer.h"
-#include "WebSocketServer.h"
+#include "websocket_server/websocket_server.h"
 #include "spdlog/spdlog.h"
 #include <Windows.h>
 
@@ -25,10 +26,9 @@ void SetupLogger() { spdlog::set_pattern("[%T]|[%s:%#]%^[%l]%$: %v"); }
 int main() {
   using namespace flight_panel;
   SetupLogger();
-
-  SerialSelect selector{};
+  auto port_finder = flight_panel::serial::CreatePortFinder();
   // Get the com port of the ProMicro board. The PID/VID are customized.
-  auto results = selector.GetComPort("2340", "8030");
+  auto results = port_finder->GetComPort("2340", "8030");
   const char* inputComPort;
   if (results.size() == 0) {
     inputComPort = "";

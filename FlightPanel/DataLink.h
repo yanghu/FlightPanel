@@ -6,13 +6,12 @@
 
 #include <thread>
 
+#include "data_def/sim_vars.h"
 #include "SimConnect.h"
-#include "SimVars.h"
 
 namespace flight_panel {
 namespace datalink {
 int Run(const std::string& inputSerialPort);
 const SimVars* const Read();
-
 }  // namespace datalink
 }  // namespace flight_panel

@@ -6,13 +6,13 @@
 #include <websocketpp/config/asio_no_tls.hpp>
 #include <websocketpp/server.hpp>
 
-#include "SimVars.h"
-#include "sim_data.pb.h"
-
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_set.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
+#include "data_def/proto/sim_data.pb.h"
+#include "data_def/sim_vars.h"
 
 namespace flight_panel {
 namespace ws {
@@ -47,7 +47,8 @@ class WebSocketServer {
 
   // Listen to port and run the Ws server
   void Run(uint16_t port);
-  void Broadcast(const std::string& payload) LOCKS_EXCLUDED(connections_lock_);
+  absl::Status Broadcast(const std::string& payload)
+      LOCKS_EXCLUDED(connections_lock_);
   // Loop that processes incoming connections and messages.
   void ProcessEvents();
 
@@ -80,7 +81,7 @@ class SimDataBroadcaster {
   void Run(absl::Duration delay = absl::Milliseconds(10));
 
  private:
-   // Converts simvar struct into SimData proto.
+  // Converts simvar struct into SimData proto.
   SimData ConvertSimData();
   SimData sim_data_;
   std::unique_ptr<WebSocketServer> server_;

@@ -15,24 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FlightPanel.cpp">
+    <ClCompile Include="serial_server.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataLink.cpp">
+    <ClCompile Include="serial_port.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\SerialPort\src\SerialPort.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SerialServer.cpp">
+    <ClCompile Include="port_finder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DataLink.h">
+    <ClInclude Include="serial_server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SerialServer.h">
+    <ClInclude Include="serial_port.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="port_finder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

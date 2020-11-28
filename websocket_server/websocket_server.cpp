@@ -1,8 +1,12 @@
-#include "WebSocketServer.h"
+// websocket_server.cpp : Defines the functions for the static library.
+//
+
+#include "websocket_server/websocket_server.h"
 
 #include <memory>
 
 #include "absl/random/random.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "spdlog/spdlog.h"
@@ -40,7 +44,7 @@ SimData GenerateFakeSimData(int seed, int rate) {
   nav_data->mutable_hsi_1()->set_course(10 * sinewave);
   nav_data->mutable_hsi_2()->set_course(-20 * sinewave);
   auto avionics = data.mutable_avionics();
-  avionics->mutable_cdi_1()->set_radial_error(-40* sinewave);
+  avionics->mutable_cdi_1()->set_radial_error(-40 * sinewave);
   avionics->mutable_cdi_2()->set_radial_error(40 * sinewave);
   return data;
 }
@@ -137,8 +141,9 @@ void WebSocketServer::Run(uint16_t port) {
   server_.run();
 }
 
-void WebSocketServer::Broadcast(const std::string& payload) {
+absl::Status WebSocketServer::Broadcast(const std::string& payload) {
   // Construct the message
+  absl::Status status;
   {
     absl::MutexLock l(&connections_lock_);
     // SPDLOG_INFO("Broadcasting data: {}", payload);
@@ -147,9 +152,11 @@ void WebSocketServer::Broadcast(const std::string& payload) {
         server_.send(connection, payload, websocketpp::frame::opcode::binary);
       } catch (websocketpp::exception const& e) {
         SPDLOG_ERROR("Send message failed because: {} ", e.what());
+        status = absl::InternalError(e.what());
       }
     }
   }
+  return status;
 }
 
 void SimDataBroadcaster::Run(absl::Duration delay) {

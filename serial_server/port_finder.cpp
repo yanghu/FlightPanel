@@ -1,20 +1,44 @@
-#include "SerialSelect.h"
-#include "spdlog/spdlog.h"
+#include "port_finder.h"
 
+#include <Wbemidl.h>
+
+#include "absl/memory/memory.h"
+#include "spdlog/spdlog.h"
 #define _WIN32_DCOM
-#include <iostream>
-#include <codecvt>
-using namespace std;
 #include <Wbemidl.h>
 #include <comdef.h>
+
+#include <codecvt>
+#include <iostream>
 
 #pragma comment(lib, "wbemuuid.lib")
 
 namespace flight_panel {
-SerialSelect::~SerialSelect() { Clean(); }
+namespace serial {
+namespace {
+using namespace std;
 
-  std::vector<SerialDevice> SerialSelect::GetComPort(const std::string& vid,
-                                             const std::string& pid) {
+class PortFinderImpl : public PortFinder {
+ public:
+  PortFinderImpl()
+      : pSvc_(nullptr), pLoc_(nullptr), pEnumerator_(nullptr), isClean_(true){};
+  ~PortFinderImpl();
+  virtual std::vector<SerialDevice> GetComPort(const std::string& vid,
+                                               const std::string& pid) override;
+  virtual std::vector<SerialDevice> GetComPort() override;
+
+ private:
+  int Connect();
+  int Clean();
+  bool isClean_;
+  IWbemServices* pSvc_;
+  IWbemLocator* pLoc_;
+  IEnumWbemClassObject* pEnumerator_;
+};
+PortFinderImpl::~PortFinderImpl() { Clean(); }
+
+std::vector<SerialDevice> PortFinderImpl::GetComPort(const std::string& vid,
+                                                     const std::string& pid) {
   std::vector<SerialDevice> devices;
   std::string vidStr = "VID_" + vid;
   std::string pidStr = "PID_" + pid;
@@ -28,9 +52,9 @@ SerialSelect::~SerialSelect() { Clean(); }
     }
   }
   return devices;
-  };
+};
 
-std::vector<SerialDevice> SerialSelect::GetComPort() {
+std::vector<SerialDevice> PortFinderImpl::GetComPort() {
   Connect();
   auto result = std::vector<SerialDevice>();
 
@@ -54,7 +78,7 @@ std::vector<SerialDevice> SerialSelect::GetComPort() {
   // Step 7: -------------------------------------------------
   // Get the data from the query in step 6 -------------------
 
-  IWbemClassObject *pclsObj = NULL;
+  IWbemClassObject* pclsObj = NULL;
   ULONG uReturn = 0;
 
   while (pEnumerator_) {
@@ -91,7 +115,7 @@ std::vector<SerialDevice> SerialSelect::GetComPort() {
   return result;
 };
 
-int SerialSelect::Connect() {
+int PortFinderImpl::Connect() {
   HRESULT hres;
 
   // Step 1: --------------------------------------------------
@@ -132,7 +156,7 @@ int SerialSelect::Connect() {
   pLoc_ = NULL;
 
   hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER,
-                          IID_IWbemLocator, (LPVOID *)&pLoc_);
+                          IID_IWbemLocator, (LPVOID*)&pLoc_);
 
   if (FAILED(hres)) {
     cout << "Failed to create IWbemLocator object."
@@ -195,7 +219,7 @@ int SerialSelect::Connect() {
   return 0;  // Program successfully completed.
 }
 
-int SerialSelect::Clean() {
+int PortFinderImpl::Clean() {
   if (isClean_) return 0;
   pSvc_->Release();
   pLoc_->Release();
@@ -204,4 +228,10 @@ int SerialSelect::Clean() {
   isClean_ = true;
   return 0;
 }
+}  // namespace
+
+std::unique_ptr<PortFinder> CreatePortFinder() {
+  return absl::make_unique<PortFinderImpl>();
+}
+}  // namespace serial
 }  // namespace flight_panel

@@ -4,7 +4,7 @@
 
 #include "DataLink.h"
 #include "SerialPort.hpp"
-#include "SimVars.h"
+#include "data_def/sim_vars.h"
 
 namespace flight_panel {
 
