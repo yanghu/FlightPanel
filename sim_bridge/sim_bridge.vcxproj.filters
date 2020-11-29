@@ -21,6 +21,9 @@
     <ClInclude Include="dispatch_handler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="mock_sim_bridge.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sim_bridge.cpp">

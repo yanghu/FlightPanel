@@ -154,6 +154,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="dispatch_handler.h" />
+    <ClInclude Include="mock_sim_bridge.h" />
     <ClInclude Include="sim_bridge.h" />
   </ItemGroup>
   <ItemGroup>

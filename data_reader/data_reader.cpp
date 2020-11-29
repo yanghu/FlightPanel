@@ -1,11 +1,6 @@
 #include "data_reader/data_reader.h"
 
-#include <queue>
-#include <thread>
-#include <vector>
-
 #include "absl/status/statusor.h"
-#include "data_def/proto/sim_data.pb.h"
 #include "data_def/sim_vars.h"
 #include "data_dispatcher/data_dispatcher.h"
 #include "sim_bridge/sim_bridge.h"
@@ -43,7 +38,7 @@ class DataReaderImpl : public DataReader {
   // Add data definition to the bridge.
   virtual absl::Status RegisterDataDef() override {
     using data::SimVarDefs;
-    for (int i = 0; SimVarDefs[i][0] == NULL; ++i) {
+    for (int i = 0; SimVarDefs[i][0] != NULL; ++i) {
       auto status_or =
           bridge_->AddDataDef(def_id_, SimVarDefs[i][0], SimVarDefs[i][1]);
       if (!status_or.ok()) {
@@ -53,6 +48,8 @@ class DataReaderImpl : public DataReader {
     }
     return absl::OkStatus();
   }
+
+  virtual int DataLength() override { return data_length_; }
 
  private:
   int req_id_;

@@ -5,7 +5,6 @@ namespace flight_panel {
 namespace data {
 
 struct SimVars {
-  double connected = 0;
   double altAltitude = 0;
   double altKollsman = 29.92;
   double adiPitch = 0;
@@ -91,6 +90,7 @@ struct SimVars {
   char atcFlightNumber[8] = "\0";
   double atcHeavy = 0;
   char aircraft[256] = "\0";
+  double connected = 0;
 };
 
 enum EVENT_ID {

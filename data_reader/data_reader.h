@@ -1,7 +1,6 @@
 #pragma once
 
 #include "absl/status/status.h"
-#include "data_def/sim_vars.h"
 #include "data_dispatcher/data_dispatcher.h"
 #include "sim_bridge/dispatch_handler.h"
 #include "sim_bridge/sim_bridge.h"
@@ -12,6 +11,7 @@ class DataReader : public sim_bridge::DispatchHandler {
  public:
   virtual absl::Status RegisterDataDef() = 0;
   // Start running, and dispatch new data when they arrive.
+  virtual int DataLength() = 0;
 };
 
 std::unique_ptr<DataReader> CreateDataReader(
