@@ -6,6 +6,7 @@
 #include "absl/memory/memory.h"
 #include "absl/time/clock.h"
 #include "serial_server/serial_port.h"
+#include "data_def/proto/sim_data.pb.h"
 // #define TEST_LED
 
 namespace flight_panel {
@@ -28,7 +29,7 @@ class SerialServerImpl : public SerialServer {
   int bufSize_ = 0;
   std::unique_ptr<SerialPort> serial_;
   const absl::Duration sendInterval_;
-  void UpdateData();
+  void UpdateData(const SimData& data);
   void ProcessRead(int bytesRead);
 };
 
@@ -51,7 +52,7 @@ void SerialServerImpl::Run() {
 #ifdef TEST_LED
     instrumentData_ = InstrumentData{0, 3, 1, 80, 1};
 #else
-    UpdateData();
+    //UpdateData();
 #endif
     if (!serial_->writeSerialPort((char*)&instrumentData_,
                                   sizeof(InstrumentData)))
@@ -71,13 +72,21 @@ absl::Status SerialServerImpl::SendData(const SimData& data) {
 }
 
 void SerialServerImpl::UpdateData(const SimData& data) {
-  instrumentData_.trimPos = (char)round(sim_->tfElevatorTrimIndicator * 100);
-  instrumentData_.flapCnt = (char)sim_->tfFlapsCount;
-  instrumentData_.flapPos = (char)sim_->tfFlapsIndex;
+  // instrumentData_.trimPos = (char)round(sim_->tfElevatorTrimIndicator * 100);
+  //instrumentData_.flapCnt = (char)sim_->tfFlapsCount;
+  //instrumentData_.flapPos = (char)sim_->tfFlapsIndex;
   // Gear position is 0~1 float value. 1 is full extended.
   // Convert to 0~100 and send it as 8bit char.
-  instrumentData_.landingGearPos = (char)(sim_->gearPosition * 100);
-  instrumentData_.parkingBrakeOn = sim_->parkingBrakeOn;
+  //instrumentData_.landingGearPos = (char)(sim_->gearPosition * 100);
+  //instrumentData_.parkingBrakeOn = sim_->parkingBrakeOn;
+  instrumentData_.trimPos =
+      (char)round(data.aircraft_controls().elevator_trim_indicator() * 100);
+  instrumentData_.flapCnt = (char)data.aircraft_controls().flaps_count();
+  instrumentData_.flapPos = (char)data.aircraft_controls().flaps_pos();
+  // Gear position is 0~1 float value. 1 is full extended.
+  // Convert to 0~100 and send it as 8bit char.
+  instrumentData_.landingGearPos = (char)(data.aircraft_controls().gear_pos() * 100);
+  instrumentData_.parkingBrakeOn = data.aircraft_controls().parking_brake_on();
 }
 
 void SerialServerImpl::ProcessRead(int bytesRead) { printf("Read: %s", rBuf_); }
@@ -86,7 +95,7 @@ void SerialServerImpl::ProcessRead(int bytesRead) { printf("Read: %s", rBuf_); }
 
 std::unique_ptr<SerialServer> CreateSerialServer(
     std::unique_ptr<SerialPort> serial_port, absl::Duration sendInterval) {
-  return absl::make_unique<SerialServerImpl>(serial_port, sendInterval);
+  return absl::make_unique<SerialServerImpl>(std::move(serial_port), sendInterval);
 }
 }  // namespace serial
 }  // namespace flight_panel

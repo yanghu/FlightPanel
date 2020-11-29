@@ -12,6 +12,10 @@ namespace data_dispatcher {
 
 namespace {
 using ::testing::_;
+using ::testing::DoubleEq;
+using ::testing::Field;
+using ::testing::Return;
+using ::testing::SaveArg;
 
 class MockClient {
  public:
@@ -28,7 +32,9 @@ TEST(DataDispatcherTest, TestNotifyTriggersDispatch) {
   dispatcher->Start();
   dispatcher->Notify(data);
   dispatcher->Notify(data);
-  absl::SleepFor(absl::Seconds(1));
+  while (dispatcher->QueueSize() > 0) {
+    ;
+  }
   dispatcher->Stop();
 }
 
@@ -45,6 +51,27 @@ TEST(DataDispatcherTest, TestIsRunningChecker) {
   dispatcher->Stop();
   EXPECT_FALSE(dispatcher->IsRunning());
 }
+
+TEST(DataDispatcherTest, TestDataConverted) {
+  MockClient mock_client;
+  SimVars data;
+  data.adiBank = 50;
+  SimData dispatched;
+  EXPECT_CALL(mock_client, Dispatch(_))
+      .WillOnce(
+          ::testing::DoAll(SaveArg<0>(&dispatched), Return(absl::OkStatus())));
+  std::unique_ptr<DataDispatcher> dispatcher = CreateDispatcher();
+  dispatcher->AddRecepient(
+      absl::bind_front(&MockClient::Dispatch, &mock_client));
+  dispatcher->Start();
+  dispatcher->Notify(data);
+  while (dispatcher->QueueSize() > 0) {
+    ;
+  }
+  dispatcher->Stop();
+  EXPECT_THAT(dispatched.instruments().bank_angle(), DoubleEq(50));
+}
+
 }  // namespace
 }  // namespace data_dispatcher
 }  // namespace flight_panel

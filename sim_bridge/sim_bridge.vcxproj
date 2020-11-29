@@ -122,9 +122,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(MSFS_SDK)\SimConnect SDK\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(MSFS_SDK)\SimConnect SDK\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>

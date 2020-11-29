@@ -9,6 +9,7 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "data_def/proto/sim_data.pb.h"
+#include "data_def/util.h"
 #include "spdlog/spdlog.h"
 
 namespace flight_panel {
@@ -22,10 +23,13 @@ class DataDispatcherImpl : public DataDispatcher {
   virtual void Start() override {
     // Reset stop notification.
     stop_notification_ = absl::make_unique<absl::Notification>();
-    std::thread([this] { RunWorker(); }).detach();
+    worker_ = std::thread(&DataDispatcherImpl::RunWorker, this);
   }
   // Stop the worker thread, by calling "notify".
-  virtual void Stop() override { stop_notification_->Notify(); }
+  virtual void Stop() override {
+    stop_notification_->Notify();
+    worker_.join();
+  }
 
   virtual absl::Status AddRecepient(DispatchCallback notify_callback)
       LOCKS_EXCLUDED(callbacks_lock) override {
@@ -42,8 +46,11 @@ class DataDispatcherImpl : public DataDispatcher {
     return absl::OkStatus();
   }
 
+  virtual int QueueSize() override { return sim_vars_.size(); }
+
   virtual bool IsRunning() override {
-    return stop_notification_ && !stop_notification_->HasBeenNotified();
+    return worker_.joinable();
+    // return stop_notification_ && !stop_notification_->HasBeenNotified();
   }
 
  private:
@@ -70,20 +77,19 @@ void DataDispatcherImpl::RunWorker() {
     data_lock_.Lock();
     spdlog::info("Waiting for new data....");
     data_lock_.Await(absl::Condition(&data_not_empty_or_stop));
-    if (stop_notification_->HasBeenNotified()) {
-      spdlog::info("Cancel notification received.");
-      break;
-    }
+    if (sim_vars_.empty()) continue;
     spdlog::info("Reading new data");
     // Data is not empty, process new data.
-    SimVars data = sim_vars_.front();
+    SimVars raw_data = sim_vars_.front();
     sim_vars_.pop();
     data_lock_.Unlock();
+    spdlog::info("New data: {}", raw_data.adiBank);
     // TODO
     // Convert SimVars to proto message
+
     // Dispatch serialized proto data.
-    spdlog::info("Dispatching dummy data");
-    SimData data_pb;
+    SimData data_pb = data::ToSimData(raw_data);
+    spdlog::info("Dispatching proto data: {}", data_pb.ShortDebugString());
     DispatchData(data_pb);
     continue;
   }

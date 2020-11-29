@@ -15,6 +15,7 @@ class DataDispatcher {
   virtual void Start() = 0;
   virtual void Stop() = 0;
   virtual bool IsRunning() = 0;
+  virtual int QueueSize() = 0;
 
   virtual absl::Status AddRecepient(
       DispatchCallback notify_callback)=0;

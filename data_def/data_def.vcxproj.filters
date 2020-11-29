@@ -21,12 +21,18 @@
     <ClInclude Include="proto\sim_data.pb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="util.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="proto\sim_data.pb.cc">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sim_vars.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
