@@ -6,8 +6,9 @@
 namespace flight_panel {
 void Log(const std::string& msg) { std::cout << msg; }
 
-flight_panel::SerialServer::SerialServer(const std::string& port, const SimVars* const sim,
-                             int sendIntervalMilliseconds)
+flight_panel::SerialServer::SerialServer(const std::string& port,
+                                         const data::SimVars* const sim,
+                                         int sendIntervalMilliseconds)
     : sim_(sim),
       sendIntervalMilliseconds_(sendIntervalMilliseconds),
       serial_(("\\\\.\\" + port).c_str()),
@@ -44,7 +45,7 @@ void SerialServer::UpdateData() {
   instrumentData_.flapPos = (char)sim_->tfFlapsIndex;
   // Gear position is 0~1 float value. 1 is full extended.
   // Convert to 0~100 and send it as 8bit char.
-  instrumentData_.landingGearPos = (char)(sim_->gearPosition*100);
+  instrumentData_.landingGearPos = (char)(sim_->gearPosition * 100);
   instrumentData_.parkingBrakeOn = sim_->parkingBrakeOn;
 }
 

@@ -22,7 +22,7 @@ struct InstrumentData {
 
 class SerialServer {
  public:
-  SerialServer(const std::string& port, const SimVars* const sim, int sendIntervalMilliseconds = 200);
+  SerialServer(const std::string& port, const data::SimVars* const sim, int sendIntervalMilliseconds = 200);
   void Run();
   const static int kBufSize = 100;
 
@@ -31,7 +31,7 @@ class SerialServer {
   char rBuf_[kBufSize] = {0};
   InstrumentData instrumentData_;
   int bufSize_ = 0;
-  const SimVars* const sim_;
+  const data::SimVars* const sim_;
   SerialPort serial_;
   const int sendIntervalMilliseconds_;
   void UpdateData();

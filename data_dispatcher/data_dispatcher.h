@@ -20,7 +20,7 @@ class DataDispatcher {
   virtual absl::Status AddRecepient(
       DispatchCallback notify_callback)=0;
   // Notify the dispatch with new data.
-  virtual absl::Status Notify(flight_panel::SimVars new_data) = 0;
+  virtual absl::Status Notify(flight_panel::data::SimVars new_data) = 0;
 };
 
 

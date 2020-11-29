@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 namespace flight_panel {
+namespace data {
+
 struct SimVars {
   double connected = 0;
   double altAltitude = 0;
@@ -52,8 +54,8 @@ struct SimVars {
   double nav2Standby = 113.90;
   double adfFreq = 394;
   double adfStandby = 368;
-  // BCO16 encoding. The double value is an integer. Lower 16 bits encodes the numbers.
-  // mask = 0xf; digit3 = int(val)>>12 & mask;
+  // BCO16 encoding. The double value is an integer. Lower 16 bits encodes the
+  // numbers. mask = 0xf; digit3 = int(val)>>12 & mask;
   double transponderCode = 4608;
   double autopilotAvailable = 1;
   double autopilotEngaged = 0;
@@ -69,7 +71,7 @@ struct SimVars {
   double autopilotMach = 0;
   double autopilotAirspeedHold = 0;
   double gearRetractable = 1;
-  // Landing gear position. 
+  // Landing gear position.
   // Enum. 0: unknown. 1:up, 2:down.  (from documentation)
   // However, the actual value read from sim is float 0~1.
   double gearPosition = 0;
@@ -141,4 +143,9 @@ struct WriteData {
   EVENT_ID eventId;
   double value;
 };
+
+extern const char* versionString;
+extern const char* SimVarDefs[][2];
+extern WriteEvent WriteEvents[];
+}  // namespace data
 }  // namespace flight_panel

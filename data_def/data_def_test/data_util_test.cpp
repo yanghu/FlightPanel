@@ -17,9 +17,10 @@ TEST(DataUtilText, TestToSimData) {
   SimVars input;
   spdlog::info("Test started");
   input.adiBank = 50;
+  strncpy(input.atcCallSign, "HAPPY", 5);
   SimData output = ToSimData(input);
-  spdlog::info(output.instruments().bank_angle());
   EXPECT_EQ(output.instruments().bank_angle(), 50);
+  EXPECT_EQ(output.aircraft_info().call_sign(), "HAPPY");
   spdlog::info("Test finished");
 }
 }  // namespace

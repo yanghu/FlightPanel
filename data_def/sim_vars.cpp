@@ -1,6 +1,8 @@
-#include <stdio.h>
 #include "data_def/sim_vars.h"
+
+#include <stdio.h>
 namespace flight_panel {
+namespace data {
 const char* versionString = "v1.3.0";
 
 const char* SimVarDefs[][2] = {
@@ -121,4 +123,6 @@ WriteEvent WriteEvents[] = {
     {KEY_ELEV_TRIM_BIG_UP, "huyang.ELEV_TRIM_UP"},
     {KEY_ELEV_TRIM_BIG_DOWN, "huyang.ELEV_TRIM_DOWN"},
     {SIM_STOP, NULL}};
+}  // namespace data
+
 }  // namespace flight_panel

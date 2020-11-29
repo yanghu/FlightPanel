@@ -16,6 +16,7 @@ using ::testing::DoubleEq;
 using ::testing::Field;
 using ::testing::Return;
 using ::testing::SaveArg;
+using data::SimVars;
 
 class MockClient {
  public:
@@ -23,12 +24,15 @@ class MockClient {
 };
 
 TEST(DataDispatcherTest, TestNotifyTriggersDispatch) {
-  MockClient mock_client;
+  MockClient mock_client1, mock_client2;
   SimVars data;
-  EXPECT_CALL(mock_client, Dispatch(_)).Times(2);
+  EXPECT_CALL(mock_client1, Dispatch(_)).Times(2);
+  EXPECT_CALL(mock_client2, Dispatch(_)).Times(2);
   std::unique_ptr<DataDispatcher> dispatcher = CreateDispatcher();
   dispatcher->AddRecepient(
-      absl::bind_front(&MockClient::Dispatch, &mock_client));
+      absl::bind_front(&MockClient::Dispatch, &mock_client1));
+  dispatcher->AddRecepient(
+      absl::bind_front(&MockClient::Dispatch, &mock_client2));
   dispatcher->Start();
   dispatcher->Notify(data);
   dispatcher->Notify(data);

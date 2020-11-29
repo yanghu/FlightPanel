@@ -4,6 +4,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
+#include "absl/strings/string_view.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "data_def/sim_vars.h"
@@ -23,10 +24,10 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
     case SIMCONNECT_RECV_ID_EVENT: {
       SIMCONNECT_RECV_EVENT* evt = (SIMCONNECT_RECV_EVENT*)pData;
       switch (evt->uEventID) {
-        case SIM_START:
+        case data::SIM_START:
           handler->OnStart();
           break;
-        case SIM_STOP:
+        case data::SIM_STOP:
           handler->OnStop();
           break;
         default:
@@ -56,7 +57,7 @@ class SimBridgeImpl : public SimBridge {
   virtual absl::Status CallDispatch(DispatchHandler* handler) override;
   virtual absl::Status RequestData(int req_id, int def_id,
                                    RefreshPeriod period) override;
-  virtual absl::Status AddDataDef(int def_id, absl::string_view name,
+  virtual absl::StatusOr<int> AddDataDef(int def_id, absl::string_view name,
                                   absl::string_view unit_or_type) override;
   virtual absl::Status MapClientEvent(int event_id,
                                       absl::string_view name) override;
@@ -125,9 +126,10 @@ absl::Status SimBridgeImpl::RequestData(int req_id, int def_id,
   }
 }
 
-absl::Status SimBridgeImpl::AddDataDef(int def_id, absl::string_view name,
+absl::StatusOr<int> SimBridgeImpl::AddDataDef(int def_id, absl::string_view name,
                                        absl::string_view unit_or_type) {
   HRESULT result;
+  int data_length = sizeof(double);
   // First find the data type.
   if (!absl::StrContains(unit_or_type, "string")) {
     // Type is not string. simply use name as unit. And data type is float64.
@@ -144,8 +146,7 @@ absl::Status SimBridgeImpl::AddDataDef(int def_id, absl::string_view name,
       return absl::InvalidArgumentError(
           absl::StrCat(message, "| number is empty"));
     }
-    int length;
-    if (!absl::SimpleAtoi(num[1], &length)) {
+    if (!absl::SimpleAtoi(num[1], &data_length)) {
       return absl::InvalidArgumentError(
           absl::StrCat(message, "|cannot convert ", num[1], " to number."));
     };
@@ -154,20 +155,20 @@ absl::Status SimBridgeImpl::AddDataDef(int def_id, absl::string_view name,
         {8, SIMCONNECT_DATATYPE_STRING8},
         {64, SIMCONNECT_DATATYPE_STRING64},
         {256, SIMCONNECT_DATATYPE_STRING256}};
-    if (!type_map.contains(length)) {
+    if (!type_map.contains(data_length)) {
       return absl::InvalidArgumentError(
-          absl::StrCat(message, "| invalid length: ", length));
+          absl::StrCat(message, "| invalid length: ", data_length));
     }
     result = SimConnect_AddToDataDefinition(hSimConnect_, def_id,
                                             std::string(name).c_str(), NULL,
-                                            type_map[length]);
+                                            type_map[data_length]);
   }
   if (result != 0) {
     std::string msg = absl::StrCat("Failed to add data def: ", name);
     SPDLOG_ERROR(msg);
     return absl::InternalError(msg);
   }
-  return absl::OkStatus();
+  return data_length;
 }
 
 absl::Status SimBridgeImpl::MapClientEvent(int event_id,

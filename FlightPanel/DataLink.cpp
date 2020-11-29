@@ -3,18 +3,19 @@
 #include <iostream>
 #include <optional>
 
-#include "spdlog/spdlog.h"
-
 #include "SerialPort.hpp"
 #include "SimConnect.h"
 #include "data_def/sim_vars.h"
+#include "spdlog/spdlog.h"
 
 namespace flight_panel {
 
-extern const char* versionString;
-extern const char* SimVarDefs[][2];
-extern WriteEvent WriteEvents[];
 namespace datalink {
+using namespace ::flight_panel::data;
+using data::SIM_START;
+using data::SIM_STOP;
+using data::SimVarDefs;
+using data::SimVars;
 
 enum DEFINITION_ID {
   // Definition that reads all variables defined in SimVar.h
@@ -26,7 +27,6 @@ enum REQUEST_ID {
   // The only request we would do is to read data.
   REQ_ID
 };
-
 
 enum GROUP_ID {
   GROUP0,
@@ -76,7 +76,7 @@ void MyDispatchProcRd(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
 
           else {
             SPDLOG_INFO("Aircraft: {}   Cruise Speed: {}", simVars.aircraft,
-                   simVars.cruiseSpeed);
+                        simVars.cruiseSpeed);
             std::cout << "Air speed: " << simVars.asiAirspeed
                       << "\tVertical speed: " << simVars.vsiVerticalSpeed
                       << "\tRPM: " << simVars.rpmEngine << std::endl
@@ -133,7 +133,8 @@ void AddReadDefs() {
       if (SimConnect_AddToDataDefinition(hSimConnect, DEF_READ_ALL,
                                          SimVarDefs[i][0],
                                          SimVarDefs[i][1]) < 0) {
-        SPDLOG_ERROR("Data def failed: {}, {}", SimVarDefs[i][0], SimVarDefs[i][1]);
+        SPDLOG_ERROR("Data def failed: {}, {}", SimVarDefs[i][0],
+                     SimVarDefs[i][1]);
       } else {
         varSize += sizeof(double);
       }
@@ -186,7 +187,7 @@ int Run(const std::string& inputComPort) {
   SPDLOG_INFO("Input com port: {}", inputComPort);
 
   std::unique_ptr<SerialPort> serial;
-  
+
   if (!inputComPort.empty())
     serial.reset(new SerialPort(("\\\\.\\" + inputComPort).c_str()));
   simVars.connected = 0;
@@ -218,7 +219,7 @@ int Run(const std::string& inputComPort) {
                       SIMCONNECT_GROUP_PRIORITY_HIGHEST,
                       SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
                 SPDLOG_WARN("Failed to transmit event: {}\n",
-                       KEY_AXIS_ELEV_TRIM_SET);
+                            KEY_AXIS_ELEV_TRIM_SET);
               } else {
                 SPDLOG_INFO("big trim up to: {}", newTrim);
               }
@@ -232,7 +233,7 @@ int Run(const std::string& inputComPort) {
                       SIMCONNECT_GROUP_PRIORITY_HIGHEST,
                       SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY) != 0) {
                 SPDLOG_ERROR("Failed to transmit event: {}",
-                  KEY_AXIS_ELEV_TRIM_SET);
+                             KEY_AXIS_ELEV_TRIM_SET);
               }
               break;
           }

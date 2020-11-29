@@ -75,7 +75,7 @@ class WebSocketServer {
 class SimDataBroadcaster {
  public:
   SimDataBroadcaster(std::unique_ptr<WebSocketServer> server,
-                     const SimVars* const sim_vars)
+                     const data::SimVars* const sim_vars)
       : server_(std::move(server)), sim_vars_(sim_vars){};
 
   void Run(absl::Duration delay = absl::Milliseconds(10));
@@ -85,7 +85,7 @@ class SimDataBroadcaster {
   SimData ConvertSimData();
   SimData sim_data_;
   std::unique_ptr<WebSocketServer> server_;
-  const SimVars* const sim_vars_;
+  const data::SimVars* const sim_vars_;
 };
 
 }  // namespace ws

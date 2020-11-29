@@ -15,6 +15,7 @@
 namespace flight_panel {
 namespace data_dispatcher {
 namespace {
+using ::flight_panel::data::SimVars;
 class DataDispatcherImpl : public DataDispatcher {
  public:
   DataDispatcherImpl(){};
@@ -39,7 +40,7 @@ class DataDispatcherImpl : public DataDispatcher {
   }
 
   // Notify the dispatch with new data.
-  virtual absl::Status Notify(flight_panel::SimVars new_data)
+  virtual absl::Status Notify(SimVars new_data)
       LOCKS_EXCLUDED(data_lock_) override {
     absl::MutexLock l(&data_lock_);
     sim_vars_.push(new_data);

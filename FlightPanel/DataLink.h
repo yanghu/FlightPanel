@@ -12,6 +12,6 @@
 namespace flight_panel {
 namespace datalink {
 int Run(const std::string& inputSerialPort);
-const SimVars* const Read();
+const data::SimVars* const Read();
 }  // namespace datalink
 }  // namespace flight_panel

@@ -5,6 +5,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 #include "data_def/sim_vars.h"
 #include "sim_bridge/dispatch_handler.h"
@@ -28,7 +29,8 @@ class SimBridge {
 
   // The unit or type field can accept "string{8|64}", or a unit string.
   // When the type is not string, default(float64) type is used.
-  virtual absl::Status AddDataDef(int def_id, absl::string_view name,
+  // Returns data length of the added def.
+  virtual absl::StatusOr<int> AddDataDef(int def_id, absl::string_view name,
                                   absl::string_view unit_or_type) = 0;
 
   virtual absl::Status MapClientEvent(int event_id, absl::string_view name) = 0;

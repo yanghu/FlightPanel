@@ -15,24 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sim_vars.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="proto\sim_data.pb.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="util.h">
+    <ClInclude Include="data_reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="proto\sim_data.pb.cc">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="util.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sim_vars.cpp">
+    <ClCompile Include="data_reader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
