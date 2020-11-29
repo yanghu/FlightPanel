@@ -8,6 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "data_def/proto/sim_data.pb.h"
 #include "spdlog/spdlog.h"
 
 namespace flight_panel {
@@ -33,6 +34,7 @@ class DataDispatcherImpl : public DataDispatcher {
     return absl::OkStatus();
   }
 
+  // Notify the dispatch with new data.
   virtual absl::Status Notify(flight_panel::SimVars new_data)
       LOCKS_EXCLUDED(data_lock_) override {
     absl::MutexLock l(&data_lock_);
@@ -45,8 +47,9 @@ class DataDispatcherImpl : public DataDispatcher {
   }
 
  private:
+  // The worker thread function.
   void RunWorker();
-  absl::Status DispatchData(const std::string& serialized_data);
+  absl::Status DispatchData(const SimData& sim_data_pb);
   std::thread worker_;
   std::unique_ptr<absl::Notification> stop_notification_;
   absl::Mutex callbacks_lock_;
@@ -80,20 +83,20 @@ void DataDispatcherImpl::RunWorker() {
     // Convert SimVars to proto message
     // Dispatch serialized proto data.
     spdlog::info("Dispatching dummy data");
-    DispatchData("dummy data");
+    SimData data_pb;
+    DispatchData(data_pb);
     continue;
   }
   return;
 }
-absl::Status DataDispatcherImpl::DispatchData(
-    const std::string& serialized_data) {
+absl::Status DataDispatcherImpl::DispatchData(const SimData& sim_data_pb) {
   spdlog::info("Entered dispatching.");
   absl::MutexLock l(&callbacks_lock_);
   spdlog::info(
       absl::StrFormat("Size of callback list: %d", dispatch_callbacks_.size()));
   for (const auto callback : dispatch_callbacks_) {
     spdlog::info("Sending callback");
-    callback(serialized_data);
+    callback(sim_data_pb);
   }
   spdlog::info("Finishing dispatching.");
   return absl::OkStatus();

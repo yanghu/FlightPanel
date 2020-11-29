@@ -3,11 +3,12 @@
 
 #include "absl/status/status.h"
 #include "data_def/sim_vars.h"
+#include "data_def/proto/sim_data.pb.h"
 
 namespace flight_panel {
 namespace data_dispatcher {
 
-using DispatchCallback = std::function<absl::Status(const std::string&)>;
+using DispatchCallback = std::function<absl::Status(const SimData&)>;
 class DataDispatcher {
  public:
   // Start running, and dispatch new data when they arrive.

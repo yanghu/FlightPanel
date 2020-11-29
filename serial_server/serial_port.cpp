@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "absl/memory/memory.h"
+#include "absl/strings/str_cat.h"
 /*
  * Author: Manash Kumar Mandal
  * Modified by: Yang Hu
@@ -134,7 +135,9 @@ void SerialPortImpl::closeSerial() { CloseHandle(this->handler); }
 }  // namespace
 
 std::unique_ptr<SerialPort> CreateSerialPort(absl::string_view port_name) {
-  return absl::make_unique<SerialPortImpl>(std::string(port_name).c_str());
+  // Construct port name with prefix.
+  std::string renamed_port = absl::StrCat("\\\\.\\", port_name);
+  return absl::make_unique<SerialPortImpl>(renamed_port.c_str());
 }
 
 }  // namespace serial

@@ -171,7 +171,6 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\SerialPort\src\SerialPort.cpp" />
     <ClCompile Include="DataLink.cpp" />
     <ClCompile Include="FlightPanel.cpp" />
     <ClCompile Include="SerialServer.cpp" />

@@ -152,7 +152,8 @@ absl::Status WebSocketServer::Broadcast(const std::string& payload) {
         server_.send(connection, payload, websocketpp::frame::opcode::binary);
       } catch (websocketpp::exception const& e) {
         SPDLOG_ERROR("Send message failed because: {} ", e.what());
-        status = absl::InternalError(e.what());
+        status = absl::InternalError(
+            absl::StrCat("Failed to send message: ", e.what()));
       }
     }
   }

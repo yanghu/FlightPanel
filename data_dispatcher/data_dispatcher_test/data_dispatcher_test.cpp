@@ -1,10 +1,11 @@
 #include "data_dispatcher/data_dispatcher.h"
 
+#include "absl/functional/bind_front.h"
+#include "absl/status/status.h"
+#include "absl/time/clock.h"
+#include "data_def/proto/sim_data.pb.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "absl/status/status.h"
-#include "absl/functional/bind_front.h"
-#include "absl/time/clock.h"
 
 namespace flight_panel {
 namespace data_dispatcher {
@@ -14,7 +15,7 @@ using ::testing::_;
 
 class MockClient {
  public:
-  MOCK_METHOD(absl::Status, Dispatch, (const std::string&));
+  MOCK_METHOD(absl::Status, Dispatch, (const SimData&));
 };
 
 TEST(DataDispatcherTest, TestNotifyTriggersDispatch) {
