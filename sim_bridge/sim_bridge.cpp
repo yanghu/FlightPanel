@@ -4,9 +4,10 @@
 #include "absl/status/status.h"
 #include "absl/strings/match.h"
 #include "absl/strings/numbers.h"
-#include "absl/strings/string_view.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
 #include "data_def/sim_vars.h"
 #include "sim_bridge/dispatch_handler.h"
 #include "spdlog/spdlog.h"
@@ -57,11 +58,16 @@ class SimBridgeImpl : public SimBridge {
   virtual absl::Status CallDispatch(DispatchHandler* handler) override;
   virtual absl::Status RequestData(int req_id, int def_id,
                                    RefreshPeriod period) override;
-  virtual absl::StatusOr<int> AddDataDef(int def_id, absl::string_view name,
-                                  absl::string_view unit_or_type) override;
+  virtual absl::StatusOr<int> AddDataDef(
+      int def_id, absl::string_view name,
+      absl::string_view unit_or_type) override;
   virtual absl::Status MapClientEvent(int event_id,
                                       absl::string_view name) override;
+
+  virtual absl::Status SubscribeSystemEvent(int event_id,
+                                            absl::string_view event_name) override;
   virtual absl::Status TransmitClientEvent(int event_id, double value) override;
+  virtual absl::Status Close() override;
 
  private:
   // SimConnect related objects.
@@ -76,8 +82,9 @@ class SimBridgeImpl : public SimBridge {
 
 SimBridgeImpl::SimBridgeImpl() {}
 
+
 absl::Status SimBridgeImpl::Connect() {
-  HRESULT result = SimConnect_Open(&hSimConnect_, "Bridge", NULL, 0, 0, 0);
+  HRESULT result = SimConnect_Open(&hSimConnect_, "Sim Bridge", NULL, 0, 0, 0);
   if (result < 0) {
     return absl::UnavailableError("Failed to connect to Sim");
   } else {
@@ -126,8 +133,9 @@ absl::Status SimBridgeImpl::RequestData(int req_id, int def_id,
   }
 }
 
-absl::StatusOr<int> SimBridgeImpl::AddDataDef(int def_id, absl::string_view name,
-                                       absl::string_view unit_or_type) {
+absl::StatusOr<int> SimBridgeImpl::AddDataDef(int def_id,
+                                              absl::string_view name,
+                                              absl::string_view unit_or_type) {
   HRESULT result;
   int data_length = sizeof(double);
   // First find the data type.
@@ -181,6 +189,20 @@ absl::Status SimBridgeImpl::MapClientEvent(int event_id,
   return absl::OkStatus();
 }
 
+absl::Status SimBridgeImpl::SubscribeSystemEvent(int event_id,
+                                                 absl::string_view event_name) {
+  auto result = SimConnect_SubscribeToSystemEvent(
+      hSimConnect_, event_id, std::string(event_name).c_str());
+  if (result != 0) {
+    std::string message =
+        absl::StrCat("Failed to subscribe to system event: ", event_name); 
+    SPDLOG_ERROR(message);
+    return absl::InternalError(message);
+  } else {
+    return absl::OkStatus();
+  }
+}
+
 absl::Status SimBridgeImpl::TransmitClientEvent(int event_id, double value) {
   auto result =
       SimConnect_TransmitClientEvent(hSimConnect_, 0, event_id, (DWORD)value,
@@ -194,6 +216,15 @@ absl::Status SimBridgeImpl::TransmitClientEvent(int event_id, double value) {
   }
 }
 
+absl::Status SimBridgeImpl::Close() {
+  auto result = SimConnect_Close(hSimConnect_);
+  if (result != 0) {
+    SPDLOG_ERROR("Failed to close SimConnect.");
+    return absl::InternalError("Failed to close SimConnect");
+  } else {
+    return absl::OkStatus();
+  }
+}
 }  // namespace
 
 std::unique_ptr<SimBridge> CreateSimBridge() {

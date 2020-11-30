@@ -34,7 +34,10 @@ class SimBridge {
                                   absl::string_view unit_or_type) = 0;
 
   virtual absl::Status MapClientEvent(int event_id, absl::string_view name) = 0;
+  virtual absl::Status SubscribeSystemEvent(int event_id,
+                                            absl::string_view event_name) = 0;
   virtual absl::Status TransmitClientEvent(int event_id, double value) = 0;
+  virtual absl::Status Close()=0;
 };
 std::unique_ptr<SimBridge> CreateSimBridge();
 

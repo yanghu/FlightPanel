@@ -1,7 +1,7 @@
 #pragma once
 #include "absl/status/status.h"
-#include "sim_bridge/sim_bridge.h"
 #include "gmock/gmock.h"
+#include "sim_bridge/sim_bridge.h"
 
 namespace flight_panel {
 namespace sim_bridge {
@@ -18,8 +18,11 @@ class MockSimBridge : public SimBridge {
               (override));
   MOCK_METHOD(absl::Status, MapClientEvent,
               (int event_id, absl::string_view name), (override));
+
+  MOCK_METHOD(absl::Status, SubscribeSystemEvent, (int, absl::string_view));
   MOCK_METHOD(absl::Status, TransmitClientEvent, (int event_id, double value),
               (override));
+  MOCK_METHOD(absl::Status, Close, (), (override));
 };
 }  // namespace sim_bridge
 }  // namespace flight_panel

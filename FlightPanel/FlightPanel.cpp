@@ -8,10 +8,9 @@
 #include <memory>
 
 #include "serial_server/port_finder.h"
+#include "serial_server/serial_server.h"
 #include "DataLink.h"
-#include "SerialPort.hpp"
 
-#include "SerialServer.h"
 #include "websocket_server/websocket_server.h"
 #include "spdlog/spdlog.h"
 #include <Windows.h>
@@ -42,8 +41,10 @@ int main() {
   const char myPort[] = "COM21";
 
   // Serial port server to communicate with the panel motors and LEDs.
-  SerialServer server(myPort, datalink::Read(), 500);
-  auto serial_thread = std::thread(&SerialServer::Run, &server);
+  auto server = serial::CreateSerialServer(
+      serial::CreateSerialPort(myPort), absl::Milliseconds(500)
+  );
+  auto serial_thread = std::thread(&serial::SerialServer::Run, server.get());
 
   ws::WebSocketServer wsServer;
   auto ws_thread = std::thread(&ws::WebSocketServer::Run, &wsServer, 8080);

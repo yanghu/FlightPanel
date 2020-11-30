@@ -26,21 +26,9 @@ class GroupedDispatchHandler : DispatchHandler {
 
   void AddHandler(DispatchHandler* handler) { handlers_.push_back(handler); }
 
-  absl::Status OnStart() {
-    for (auto handler : handlers_) {
-      handler->OnStart();
-    }
-  }
-  absl::Status OnStop() {
-    for (auto handler : handlers_) {
-      handler->OnStop();
-    }
-  }
-  absl::Status OnData(int req_id, void* pData) {
-    for (auto handler : handlers_) {
-      handler->OnData(req_id, pData);
-    }
-  }
+  absl::Status OnStart();
+  absl::Status OnStop();
+  absl::Status OnData(int req_id, void* pData);
 
  private:
   std::vector<DispatchHandler*> handlers_;

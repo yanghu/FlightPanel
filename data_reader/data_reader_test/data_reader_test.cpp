@@ -3,9 +3,9 @@
 #include "absl/functional/bind_front.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/time/clock.h"
 #include "data_def/proto/sim_data.pb.h"
 #include "data_dispatcher/data_dispatcher.h"
@@ -33,7 +33,6 @@ using ::testing::SaveArg;
 MATCHER_P(IsStringType, length, "Check if string type") {
   return arg == absl::StrCat("string", length);
 }
-
 
 MATCHER(IsNotStringType, "Check if string type") {
   return !absl::StrContains(arg, "string");
@@ -72,6 +71,37 @@ TEST(DataReaderTest, TestDataLengthCorrect) {
   // we have another field for "connected" in SimVars, which is not part of the
   // SimConnect data frame.
   EXPECT_EQ(reader->DataLength() + 8, sizeof(buffer));
+}
+
+TEST(DataReaderTest, TestOnDataCopyOver) {
+  MockSimBridge mock_bridge;
+  MockDataDispatcher mock_dispatcher;
+  auto reader = CreateDataReader(0, 0, &mock_bridge, &mock_dispatcher);
+  EXPECT_CALL(mock_bridge, AddDataDef(0, _, IsNotStringType()))
+      .WillRepeatedly(Return(sizeof(double)));
+  EXPECT_CALL(mock_bridge, AddDataDef(0, _, IsStringType(8)))
+      .WillRepeatedly(Return(8));
+  EXPECT_CALL(mock_bridge, AddDataDef(0, _, IsStringType(64)))
+      .WillRepeatedly(Return(64));
+  EXPECT_CALL(mock_bridge, AddDataDef(0, _, IsStringType(256)))
+      .WillRepeatedly(Return(256));
+  SimVars notified_data;
+  EXPECT_CALL(mock_dispatcher, Notify(_))
+      .WillOnce(DoAll(SaveArg<0>(&notified_data), Return(absl::OkStatus())));
+  reader->RegisterDataDef();
+  SimVars buffer;
+  // Modify the buffer so it's different from the default value.
+  buffer.asiAirspeed = 99;
+  buffer.altAltitude = 555;
+  strncpy(buffer.atcTailNumber, "HELLO", 5);
+  // We will verify if the "connected" is copied over or not.
+  buffer.connected = 1;
+  reader->OnData(0, &buffer);
+  // Verify that the data sent to the dispatcher matches the buffer
+  EXPECT_EQ(notified_data.asiAirspeed, 99);
+  EXPECT_EQ(notified_data.altAltitude, 555);
+  EXPECT_EQ(std::string(notified_data.atcTailNumber), "HELLO");
+  EXPECT_EQ(notified_data.connected, 0);
 }
 
 }  // namespace

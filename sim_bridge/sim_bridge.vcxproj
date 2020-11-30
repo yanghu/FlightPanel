@@ -124,7 +124,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(MSFS_SDK)\SimConnect SDK\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(MSFS_SDK)\SimConnect SDK\include;$(VcpkgInstalledDir)/x64-windows/include;H:\source\repos\shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -142,7 +142,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(MSFS_SDK)\SimConnect SDK\include;$(VcpkgInstalledDir)/x64-windows/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(MSFS_SDK)\SimConnect SDK\include;$(VcpkgInstalledDir)/x64-windows/include;H:\source\repos\shared</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -158,6 +158,7 @@
     <ClInclude Include="sim_bridge.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="dispatch_handler.cpp" />
     <ClCompile Include="sim_bridge.cpp" />
   </ItemGroup>
   <ItemGroup>

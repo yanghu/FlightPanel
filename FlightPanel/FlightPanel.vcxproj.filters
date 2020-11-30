@@ -21,15 +21,9 @@
     <ClCompile Include="DataLink.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SerialServer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataLink.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SerialServer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
