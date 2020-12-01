@@ -15,7 +15,10 @@ class SimRunner {
 
   virtual sim_bridge::SimBridge* sim_bridge() = 0;
   virtual data_dispatcher::DataDispatcher* data_dispatcher() = 0;
-
 };
+
+std::unique_ptr<SimRunner> CreateSimRunner(
+    std::unique_ptr<sim_bridge::SimBridge> sim_bridge,
+    std::unique_ptr<data_dispatcher::DataDispatcher> data_dispatcher);
 
 }  // namespace flight_panel

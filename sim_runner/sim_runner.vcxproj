@@ -160,6 +160,14 @@
   <ItemGroup>
     <ClInclude Include="sim_runner.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\data_reader\data_reader.vcxproj">
+      <Project>{6910bbaf-a2bd-4230-8334-82cdae1f5e55}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\sim_bridge\sim_bridge.vcxproj">
+      <Project>{c88621d1-dd9d-4e16-a885-fac15eace40a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -24,8 +24,7 @@ constexpr absl::Duration kLoopInterval = absl::Milliseconds(10);
 // Add a handler to quite on stop.
 class RunnerDispatchHandler : public DispatchHandler {
  public:
-  RunnerDispatchHandler(SimRunner* runner)
-      : runner_(runner) {}
+  RunnerDispatchHandler(SimRunner* runner) : runner_(runner) {}
   virtual absl::Status OnStart() override { return absl::OkStatus(); }
   virtual absl::Status OnStop() override {
     runner_->Stop();
@@ -75,14 +74,13 @@ SimRunnerImpl::SimRunnerImpl(std::unique_ptr<SimBridge> bridge,
     : bridge_(std::move(bridge)),
       dispatcher_(std::move(dispatcher_)),
       connected_(false),
-      reader_(CreateDataReader(kDataReadRequestID, kDataReadDefID, sim_bridge(),
-                               data_dispatcher())) {
+      reader_(CreateDataReader(kDataReadRequestID, kDataReadDefID, bridge.get(),
+                               dispatcher.get())) {
   // Initialize dispatch handler
   dispatch_handler_ = absl::make_unique<sim_bridge::GroupedDispatchHandler>();
   // This is the handler to stop the runner when stop signal is received from
   // the game.
-  runner_dispatch_handler_ =
-      absl::make_unique<RunnerDispatchHandler>(this);
+  runner_dispatch_handler_ = absl::make_unique<RunnerDispatchHandler>(this);
 
   // Add reader to dispatch handler list.
   dispatch_handler_->AddHandler(reader_.get());
@@ -101,6 +99,10 @@ absl::Status SimRunnerImpl::Init() {
 }
 
 absl::Status SimRunnerImpl::Run() {
+  if (!connected_) {
+    return absl::FailedPreconditionError(
+        "Must connect to SimConnect before running.");
+  }
   stop_notification_ = absl::make_unique<absl::Notification>();
   // Start request data.
   bridge_->RequestData(kDataReadRequestID, kDataReadDefID,
@@ -129,6 +131,7 @@ absl::Status SimRunnerImpl::CleanUp() {
   RETURN_IF_ERROR(bridge_->RequestData(kDataReadRequestID, kDataReadDefID,
                                        sim_bridge::RefreshPeriod::NEVER));
   RETURN_IF_ERROR(bridge_->Close());
+  connected_ = false;
   return absl::Status();
 }
 
@@ -144,4 +147,12 @@ bool SimRunnerImpl::ShouldQuit() {
 }
 
 }  // namespace
+
+std::unique_ptr<SimRunner> CreateSimRunner(
+    std::unique_ptr<sim_bridge::SimBridge> sim_bridge,
+    std::unique_ptr<data_dispatcher::DataDispatcher> data_dispatcher) {
+  return absl::make_unique<SimRunnerImpl>(std::move(sim_bridge),
+                                          std::move(data_dispatcher));
+}
+// namespace
 }  // namespace flight_panel

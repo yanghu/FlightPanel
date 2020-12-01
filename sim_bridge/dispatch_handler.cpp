@@ -2,25 +2,28 @@
 
 #include "absl_helper/status_macros.h"
 
-inline absl::Status
-flight_panel::sim_bridge::GroupedDispatchHandler::OnStart() {
+namespace flight_panel {
+namespace sim_bridge {
+
+absl::Status GroupedDispatchHandler::OnStart() {
   for (auto handler : handlers_) {
     RETURN_IF_ERROR(handler->OnStart());
   }
   return absl::OkStatus();
 }
 
-inline absl::Status flight_panel::sim_bridge::GroupedDispatchHandler::OnStop() {
+absl::Status GroupedDispatchHandler::OnStop() {
   for (auto handler : handlers_) {
     RETURN_IF_ERROR(handler->OnStop());
   }
   return absl::OkStatus();
 }
 
-inline absl::Status flight_panel::sim_bridge::GroupedDispatchHandler::OnData(
-    int req_id, void* pData) {
+absl::Status GroupedDispatchHandler::OnData(int req_id, void* pData) {
   for (auto handler : handlers_) {
     RETURN_IF_ERROR(handler->OnData(req_id, pData));
   }
   return absl::OkStatus();
 }
+}  // namespace sim_bridge
+}  // namespace flight_panel
