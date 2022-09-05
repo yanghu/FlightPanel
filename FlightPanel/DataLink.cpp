@@ -3,9 +3,9 @@
 #include <iostream>
 #include <optional>
 
-#include "SerialPort.hpp"
 #include "SimConnect.h"
 #include "data_def/sim_vars.h"
+#include "serial_server/serial_port.h"
 #include "spdlog/spdlog.h"
 
 namespace flight_panel {
@@ -16,6 +16,7 @@ using data::SIM_START;
 using data::SIM_STOP;
 using data::SimVarDefs;
 using data::SimVars;
+using ::flight_panel::serial::SerialPort;
 
 enum DEFINITION_ID {
   // Definition that reads all variables defined in SimVar.h
@@ -189,7 +190,7 @@ int Run(const std::string& inputComPort) {
   std::unique_ptr<SerialPort> serial;
 
   if (!inputComPort.empty())
-    serial.reset(new SerialPort(("\\\\.\\" + inputComPort).c_str()));
+    serial = serial::CreateSerialPort(("\\\\.\\" + inputComPort));
   simVars.connected = 0;
   char serialInputBuf[10];
   HRESULT result;
